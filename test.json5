@@ -1,8 +1,21 @@
 [
+  //print functions
   {
-    print: ["Hello world", "! ", 1, null],
+    print: ["Hello world", "! ", 1, "\n", ["wow"]],
   },
   {
-    print: ["Khm", "?"],
+    println: ["Hello", "world", "!"],
   },
+  {
+    print: "Fool",
+  },
+  "Really?",
+
+  [2, "Yes \n", true],
+
+  true, //throw error
+
+  //Exit functions
+  "Exit",
+  "ErrExit",
 ]

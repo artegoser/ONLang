@@ -1,6 +1,7 @@
+use colored::*;
+use json5;
 use serde_json::Value;
 use std::collections::HashMap;
-
 pub struct Interpreter {
     input: String,
     vars: HashMap<String, Value>,
@@ -12,7 +13,7 @@ impl Interpreter {
         Interpreter {
             input,
             vars: HashMap::new(),
-            pos: 0,
+            pos: 1,
         }
     }
 
@@ -21,37 +22,117 @@ impl Interpreter {
         let arr = obj.as_array_mut().unwrap();
 
         for command in arr {
-            for (name, value) in command.as_object().unwrap() {
-                if name == "print" {
-                    self.print(value);
+            match command {
+                Value::Object(command) => {
+                    for (name, value) in command {
+                        match name.as_str() {
+                            "print" => match value {
+                                Value::Array(value) => {
+                                    self.print(value, false);
+                                }
+                                Value::String(value) => {
+                                    self.print(&mut vec![Value::String(value.to_string())], false);
+                                }
+                                _ => {
+                                    self.error("Unsupported data type for the print argument");
+                                }
+                            },
+                            "println" => match value {
+                                Value::Array(value) => {
+                                    self.print(value, true);
+                                }
+                                Value::String(value) => {
+                                    self.print(&mut vec![Value::String(value.to_string())], true);
+                                }
+                                _ => {
+                                    self.error("Unsupported data type for the println argument");
+                                }
+                            },
+                            name => {
+                                self.unk_token(&name);
+                            }
+                        }
+                    }
+                }
+                Value::String(name) => match name.as_str() {
+                    "Exit" => {
+                        self.exit();
+                    }
+                    "ErrExit" => {
+                        self.err_exit();
+                    }
+                    value => {
+                        self.print(&mut vec![Value::String(value.to_string())], false);
+                    }
+                },
+                Value::Array(command) => {
+                    self.print(command, false);
+                }
+                _ => {
+                    self.error("Unsupported data type for the command");
                 }
             }
+
+            self.pos += 1;
         }
     }
-
-    fn print(&self, args: &Value) {
-        for arg in args.as_array().unwrap() {
+    fn print(&self, args: &mut Vec<Value>, ln: bool) {
+        for arg in args {
             match arg {
-                Value::Array(arg) => {
-                    print!("{:#?}", arg);
+                Value::Array(args) => {
+                    print!("{}", serde_json::to_string_pretty(args).unwrap());
                 }
                 Value::String(arg) => {
                     print!("{}", arg);
                 }
                 Value::Bool(arg) => {
-                    print!("{}", arg);
+                    print!("{}", arg.to_string().blue());
                 }
                 Value::Number(arg) => {
-                    print!("{}", arg);
+                    print!("{}", arg.to_string().truecolor(180, 208, 143));
                 }
                 Value::Object(arg) => {
-                    print!("{:#?}", arg);
+                    print!("{}", serde_json::to_string_pretty(arg).unwrap());
                 }
                 Value::Null => {
-                    print!("null");
+                    print!("{}", "null".blue());
                 }
             }
+            if ln == true {
+                println!();
+            }
         }
-        println!("");
+        if ln == false {
+            println!();
+        }
+    }
+    fn exit(&self) {
+        println!("{}", "Programm finished with exit code: 0".green());
+        std::process::exit(0);
+    }
+    fn err_exit(&self) {
+        println!("{}", "Programm finished with exit code: 1".red());
+        std::process::exit(1);
+    }
+    fn unk_token(&self, name: &str) {
+        println!(
+            "{} {} | {} {}",
+            "Unexpected token name:".red(),
+            name.bold().black(),
+            "pos:".green(),
+            self.pos
+        );
+        std::process::exit(1);
+    }
+
+    fn error(&self, name: &str) {
+        println!(
+            "{} {} | {} {}",
+            "Error:".red(),
+            name.bold().black(),
+            "pos:".green(),
+            self.pos
+        );
+        std::process::exit(1);
     }
 }

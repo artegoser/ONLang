@@ -1,5 +1,5 @@
 [package]
-name = "ONLang"
+name = "onlang"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,4 @@ serde = { version = "1.0", features = ["derive"] }
 json5 = "0.4.1"
 serde_json = "1.0"
 clap = { version = "3.2", features = ["derive"] }
+colored = "2"
