@@ -1,0 +1,8 @@
+[
+  {
+    print: ["Hello world", "! ", 1, null],
+  },
+  {
+    print: ["Khm", "?"],
+  },
+]
