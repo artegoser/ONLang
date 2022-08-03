@@ -1,6 +1,6 @@
 use colored::*;
 use json5;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 pub struct Interpreter {
     input: String,
@@ -18,8 +18,8 @@ impl Interpreter {
     }
 
     pub fn run(&mut self) {
-        let mut obj = json5::from_str::<Value>(&self.input).unwrap();
-        let arr = obj.as_array_mut().unwrap();
+        let obj = json5::from_str::<Value>(&self.input).unwrap();
+        let arr = obj.as_array().unwrap();
 
         for command in arr {
             self.eval_node(command);
@@ -27,103 +27,157 @@ impl Interpreter {
         }
     }
 
-    fn eval_node(&self, command: &mut Value) -> Value {
+    fn eval_node(&mut self, command: &Value) -> Value {
         match command {
             Value::Object(command) => {
                 for (name, value) in command {
                     match name.as_str() {
-                        "print" => {
-                            match value {
-                                Value::Array(value) => {
-                                    self.print(value, false);
-                                }
-                                Value::String(value) => {
-                                    self.print(&mut vec![Value::String(value.to_string())], false);
-                                }
-                                _ => {
-                                    self.error("Unsupported data type for the print argument");
+                        "print" => match value {
+                            Value::Array(value) => {
+                                self.print(value, false);
+                            }
+                            Value::String(value) => {
+                                self.print(&vec![Value::String(value.to_string())], false);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the print argument");
+                            }
+                        },
+                        "println" => match value {
+                            Value::Array(value) => {
+                                self.print(value, true);
+                            }
+                            Value::String(value) => {
+                                self.print(&vec![Value::String(value.to_string())], true);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the println argument");
+                            }
+                        },
+                        "calc" => match value {
+                            Value::Array(value) => {
+                                if value.len() == 3 {
+                                    return self.calc(value);
+                                } else {
+                                    self.error("Unsupported data type for the calc arguments");
                                 }
                             }
-                            return Value::Null;
-                        }
-                        "println" => {
-                            match value {
-                                Value::Array(value) => {
-                                    self.print(value, true);
-                                }
-                                Value::String(value) => {
-                                    self.print(&mut vec![Value::String(value.to_string())], true);
-                                }
-                                _ => {
-                                    self.error("Unsupported data type for the println argument");
+                            _ => {
+                                self.error("Unsupported data type for the calc arguments");
+                            }
+                        },
+                        "comp" => match value {
+                            Value::Array(value) => {
+                                if value.len() == 3 {
+                                    return self.comp(value);
+                                } else {
+                                    self.error("Unsupported data type for the comp arguments");
                                 }
                             }
-                            return Value::Null;
-                        }
-                        "calc" => {
-                            match value {
-                                Value::Array(value) => {
-                                    if value.len() == 3 {
-                                        return self.calc(value);
-                                    } else {
-                                        return Value::Null;
-                                    }
-                                }
-                                _ => {
-                                    self.error("Unsupported data type for the println argument");
-                                }
+                            _ => {
+                                self.error("Unsupported data type for the comp arguments");
                             }
-                            return Value::Null;
-                        }
-                        "comp" => {
-                            match value {
-                                Value::Array(value) => {
-                                    if value.len() == 3 {
-                                        return self.comp(value);
-                                    } else {
-                                        return Value::Null;
-                                    }
-                                }
-                                _ => {
-                                    self.error("Unsupported data type for the println argument");
-                                }
+                        },
+                        "let" => match value {
+                            Value::Object(value) => {
+                                return self.define(value);
                             }
-                            return Value::Null;
-                        }
+                            _ => {
+                                self.error("Unsupported data type for the let argument");
+                            }
+                        },
+                        "assign" => match value {
+                            Value::Object(value) => {
+                                return self.assign(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the let argument");
+                            }
+                        },
+                        "var" => match value {
+                            Value::String(value) => {
+                                return self.get_var(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the let argument");
+                            }
+                        },
                         name => {
                             self.unk_token(&name);
-                            return Value::Null;
                         }
                     }
                 }
-                Value::Null
             }
-            Value::String(name) => {
-                match name.as_str() {
-                    "Exit" => {
-                        self.exit();
-                    }
-                    "ErrExit" => {
-                        self.err_exit();
-                    }
-                    value => {
-                        self.print(&mut vec![Value::String(value.to_string())], false);
-                    }
+            Value::String(name) => match name.as_str() {
+                "Exit" => {
+                    self.exit();
                 }
-                Value::Null
-            }
+                "ErrExit" => {
+                    self.err_exit();
+                }
+                value => {
+                    self.print(&vec![Value::String(value.to_string())], false);
+                }
+            },
             Value::Array(command) => {
                 self.print(command, false);
-                Value::Null
             }
             _ => {
                 self.error("Unsupported data type for the command");
-                Value::Null
+            }
+        }
+        return Value::Null;
+    }
+
+    fn define(&mut self, vars: &Map<String, Value>) -> Value {
+        for (name, value) in vars {
+            match value {
+                Value::Object(_) => {
+                    let value = self.eval_node(value);
+                    self.vars.insert(name.to_string(), value);
+                }
+                _ => {
+                    self.vars.insert(name.to_string(), value.clone());
+                }
+            }
+        }
+        Value::Null
+    }
+
+    fn get_var(&mut self, var_name: &String) -> Value {
+        let var = self.vars.get(var_name);
+        match var {
+            Some(var) => var.clone(),
+            None => {
+                self.error(&format!("The variable {} does not exist", var_name));
+                panic!()
             }
         }
     }
 
-    fn calc(&self, value: &mut Vec<Value>) -> Value {
+    fn assign(&mut self, vars: &Map<String, Value>) -> Value {
+        for (name, value) in vars {
+            let var = self.vars.get(name);
+            match var {
+                Some(_) => match value {
+                    Value::Object(_) => {
+                        let value = self.eval_node(value);
+                        self.vars.insert(name.to_string(), value);
+                    }
+                    _ => {
+                        self.vars.insert(name.to_string(), value.clone());
+                    }
+                },
+                None => {
+                    self.error(&format!("The variable {} does not exist", name));
+                    panic!();
+                }
+            }
+        }
+        Value::Null
+    }
+
+    fn calc(&mut self, value: &Vec<Value>) -> Value {
         let op1 = &value[0];
         let operation = &value[1];
         let op2 = &value[2];
@@ -158,27 +212,26 @@ impl Interpreter {
                         }
                     }
                 }
-                Value::Object(_) => self.calc(&mut vec![
-                    Value::Number(op1.clone()),
-                    operation.clone(),
-                    self.eval_node(&mut op2.clone()),
-                ]),
+                Value::Object(_) => {
+                    let op1 = Value::Number(op1.clone());
+                    let op2 = self.eval_node(&op2.clone());
+                    self.calc(&vec![op1, operation.clone(), op2])
+                }
                 _ => {
                     self.error("Unsupported operand type for calculation");
                     panic!();
                 }
             },
             Value::Object(_) => match op2 {
-                Value::Number(_) => self.calc(&mut vec![
-                    self.eval_node(&mut op1.clone()),
-                    operation.clone(),
-                    op2.clone(),
-                ]),
-                Value::Object(_) => self.calc(&mut vec![
-                    self.eval_node(&mut op1.clone()),
-                    operation.clone(),
-                    self.eval_node(&mut op2.clone()),
-                ]),
+                Value::Number(_) => {
+                    let op1 = self.eval_node(&op1.clone());
+                    self.calc(&vec![op1, operation.clone(), op2.clone()])
+                }
+                Value::Object(_) => {
+                    let op1 = self.eval_node(&op1.clone());
+                    let op2 = self.eval_node(&op2.clone());
+                    self.calc(&vec![op1, operation.clone(), op2])
+                }
                 _ => {
                     self.error("Unsupported operand type for calculation");
                     panic!();
@@ -191,29 +244,27 @@ impl Interpreter {
         }
     }
 
-    fn comp(&self, value: &mut Vec<Value>) -> Value {
+    fn comp(&mut self, value: &Vec<Value>) -> Value {
         let op1 = &value[0];
         let operation = &value[1];
         let op2 = &value[2];
         match op1 {
             Value::Object(_) => match op2 {
-                Value::Object(_) => self.comp(&mut vec![
-                    self.eval_node(&mut op1.clone()),
-                    operation.clone(),
-                    self.eval_node(&mut op2.clone()),
-                ]),
-                _ => self.comp(&mut vec![
-                    self.eval_node(&mut op1.clone()),
-                    operation.clone(),
-                    op2.clone(),
-                ]),
+                Value::Object(_) => {
+                    let op1 = self.eval_node(&op1.clone());
+                    let op2 = self.eval_node(&op2.clone());
+                    self.comp(&vec![op1, operation.clone(), op2])
+                }
+                _ => {
+                    let op1 = self.eval_node(&op1.clone());
+                    self.comp(&vec![op1, operation.clone(), op2.clone()])
+                }
             },
             Value::Number(op1) => match op2 {
-                Value::Object(_) => self.comp(&mut vec![
-                    Value::Number(op1.clone()),
-                    operation.clone(),
-                    self.eval_node(&mut op2.clone()),
-                ]),
+                Value::Object(_) => {
+                    let op2 = self.eval_node(&op2.clone());
+                    self.comp(&vec![Value::Number(op1.clone()), operation.clone(), op2])
+                }
                 Value::Number(op2) => {
                     let op1 = op1.as_f64().unwrap();
                     let op2 = op2.as_f64().unwrap();
@@ -245,11 +296,10 @@ impl Interpreter {
                 }
             },
             Value::Bool(op1) => match op2 {
-                Value::Object(_) => self.comp(&mut vec![
-                    Value::Bool(op1.clone()),
-                    operation.clone(),
-                    self.eval_node(&mut op2.clone()),
-                ]),
+                Value::Object(_) => {
+                    let op2 = self.eval_node(&op2.clone());
+                    self.comp(&vec![Value::Bool(op1.clone()), operation.clone(), op2])
+                }
                 Value::Bool(op2) => match operation {
                     Value::String(operation) => match operation.as_str() {
                         "==" => json!(op1 == op2),
@@ -279,11 +329,10 @@ impl Interpreter {
                 }
             },
             _ => match op2 {
-                Value::Object(_) => self.comp(&mut vec![
-                    op1.clone(),
-                    operation.clone(),
-                    self.eval_node(&mut op2.clone()),
-                ]),
+                Value::Object(_) => {
+                    let op2 = self.eval_node(&op2.clone());
+                    self.comp(&vec![op1.clone(), operation.clone(), op2])
+                }
 
                 _ => match operation {
                     Value::String(operation) => match operation.as_str() {
@@ -306,7 +355,7 @@ impl Interpreter {
         }
     }
 
-    fn print(&self, args: &mut Vec<Value>, ln: bool) {
+    fn print(&mut self, args: &Vec<Value>, ln: bool) {
         for arg in args {
             self.print_one(arg);
             if ln == true {
@@ -318,7 +367,7 @@ impl Interpreter {
         }
     }
 
-    fn print_one(&self, arg: &Value) {
+    fn print_one(&mut self, arg: &Value) {
         match arg {
             Value::Array(args) => {
                 print!("{}", serde_json::to_string_pretty(args).unwrap());
@@ -333,7 +382,8 @@ impl Interpreter {
                 print!("{}", arg.to_string().truecolor(180, 208, 143));
             }
             Value::Object(arg) => {
-                self.print_one(&self.eval_node(&mut Value::Object(arg.clone())));
+                let to_print = self.eval_node(&Value::Object(arg.clone()));
+                self.print_one(&to_print);
             }
             Value::Null => {
                 print!("{}", "null".blue());

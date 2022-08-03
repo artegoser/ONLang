@@ -126,6 +126,42 @@
     ],
   },
 
+  "\nCreating variables",
+  {
+    let: {
+      str: "A",
+      num: 2,
+      arr: ["Array", "in", "variable"],
+    },
+  },
+
+  {
+    let: {
+      calculated: { calc: [{ var: "num" }, "*", 4] },
+    },
+  },
+
+  [
+    "Created 4 variables with values:\n",
+    "str = ",
+    { var: "str" },
+    "\nnum = ",
+    { var: "num" },
+    "\narr = ",
+    { var: "arr" },
+    "\ncalculated (num * 4) = ",
+    { var: "calculated" },
+  ],
+
+  "Execute calculated = calculated + 1",
+  {
+    assign: {
+      calculated: { calc: [{ var: "calculated" }, "+", 1] },
+    },
+  },
+
+  ["After executing calculated = ", { var: "calculated" }],
+
   // {
   //   print: [
   //     {
