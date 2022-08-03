@@ -162,6 +162,40 @@
 
   ["After executing calculated = ", { var: "calculated" }],
 
+  "\nRun loop",
+  {
+    loop: [
+      {
+        assign: {
+          calculated: { calc: [{ var: "calculated" }, "+", 1] },
+        },
+      },
+      { print: ["\rcalculated = ", { var: "calculated" }] },
+      {
+        if: {
+          condition: { comp: [{ var: "calculated" }, ">=", 200000] },
+          body: ["\n", "break"],
+        },
+      },
+    ],
+  },
+
+  {
+    if: {
+      condition: { comp: [{ var: "calculated" }, ">=", 199999] },
+      body: [["Calculated is >= ", 199999]],
+      else: [["Calculated is < ", 199999]],
+    },
+  },
+
+  {
+    if: {
+      condition: { comp: [{ var: "calculated" }, ">", 200000] },
+      body: [["Calculated is > ", 200000]],
+      else: [["Calculated is <= ", 200000]],
+    },
+  },
+
   // {
   //   print: [
   //     {

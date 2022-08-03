@@ -102,6 +102,22 @@ impl Interpreter {
                                 self.error("Unsupported data type for the let argument");
                             }
                         },
+                        "if" => match value {
+                            Value::Object(value) => {
+                                return self.if_node(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the if argument");
+                            }
+                        },
+                        "loop" => match value {
+                            Value::Array(value) => {
+                                return self.loop_cycle(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the loop cycle argument");
+                            }
+                        },
                         name => {
                             self.unk_token(&name);
                         }
@@ -115,18 +131,110 @@ impl Interpreter {
                 "ErrExit" => {
                     self.err_exit();
                 }
+                "break" => return Value::String("break".to_string()),
+                "continue" => return Value::String("continue".to_string()),
                 value => {
-                    self.print(&vec![Value::String(value.to_string())], false);
+                    self.print(&vec![Value::String(value.to_string())], true);
                 }
             },
             Value::Array(command) => {
-                self.print(command, false);
+                self.print(command, true);
             }
             _ => {
                 self.error("Unsupported data type for the command");
             }
         }
         return Value::Null;
+    }
+
+    fn if_node(&mut self, value: &Map<String, Value>) -> Value {
+        let condition = self.eval_node(&value["condition"]);
+        let nodes = &value.get("body");
+        let else_nodes = &value.get("else");
+
+        match nodes {
+            Some(nodes) => match nodes {
+                Value::Array(nodes) => match else_nodes {
+                    Some(else_nodes) => match else_nodes {
+                        Value::Array(else_nodes) => {
+                            if condition == true {
+                                let name = self.run_nodes(nodes);
+                                if name == "break" {
+                                    return Value::String("break".to_string());
+                                }
+                                if name == "continue" {
+                                    return Value::String("continue".to_string());
+                                }
+                                return Value::Null;
+                            } else {
+                                let name = self.run_nodes(else_nodes);
+                                if name == "break" {
+                                    return Value::String("break".to_string());
+                                }
+                                if name == "continue" {
+                                    return Value::String("continue".to_string());
+                                }
+                                return Value::Null;
+                            };
+                        }
+                        _ => {
+                            if condition == true {
+                                let name = self.run_nodes(nodes);
+                                if name == "break" {
+                                    return Value::String("break".to_string());
+                                }
+                                if name == "continue" {
+                                    return Value::String("continue".to_string());
+                                }
+                                return Value::Null;
+                            }
+                            return Value::Null;
+                        }
+                    },
+                    None => {
+                        if condition == true {
+                            let name = self.run_nodes(nodes);
+                            if name == "break" {
+                                return Value::String("break".to_string());
+                            }
+                            if name == "continue" {
+                                return Value::String("continue".to_string());
+                            }
+                            return Value::Null;
+                        }
+                        return Value::Null;
+                    }
+                },
+                _ => return Value::Null,
+            },
+            None => {
+                self.error("if must have a body");
+                panic!()
+            }
+        }
+    }
+
+    fn loop_cycle(&mut self, value: &Vec<Value>) -> Value {
+        loop {
+            let name = self.run_nodes(value);
+            if name == "break" {
+                break Value::Null;
+            }
+            if name == "continue" {
+                continue;
+            }
+        }
+    }
+
+    fn run_nodes(&mut self, arr: &Vec<Value>) -> String {
+        for command in arr {
+            let to_do = self.eval_node(command);
+            match to_do {
+                Value::String(name) => return name,
+                _ => {}
+            }
+        }
+        "end".to_string()
     }
 
     fn define(&mut self, vars: &Map<String, Value>) -> Value {
@@ -358,11 +466,8 @@ impl Interpreter {
     fn print(&mut self, args: &Vec<Value>, ln: bool) {
         for arg in args {
             self.print_one(arg);
-            if ln == true {
-                println!();
-            }
         }
-        if ln == false {
+        if ln == true {
             println!();
         }
     }
