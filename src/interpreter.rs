@@ -1,6 +1,6 @@
 use colored::*;
 use json5;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::collections::HashMap;
 pub struct Interpreter {
     input: String,
@@ -22,11 +22,19 @@ impl Interpreter {
         let arr = obj.as_array_mut().unwrap();
 
         for command in arr {
-            match command {
-                Value::Object(command) => {
-                    for (name, value) in command {
-                        match name.as_str() {
-                            "print" => match value {
+            self.eval_node(command);
+        }
+
+        self.pos += 1;
+    }
+
+    fn eval_node(&self, command: &mut Value) -> Value {
+        match command {
+            Value::Object(command) => {
+                for (name, value) in command {
+                    match name.as_str() {
+                        "print" => {
+                            match value {
                                 Value::Array(value) => {
                                     self.print(value, false);
                                 }
@@ -36,8 +44,11 @@ impl Interpreter {
                                 _ => {
                                     self.error("Unsupported data type for the print argument");
                                 }
-                            },
-                            "println" => match value {
+                            }
+                            return Value::Null;
+                        }
+                        "println" => {
+                            match value {
                                 Value::Array(value) => {
                                     self.print(value, true);
                                 }
@@ -47,14 +58,34 @@ impl Interpreter {
                                 _ => {
                                     self.error("Unsupported data type for the println argument");
                                 }
-                            },
-                            name => {
-                                self.unk_token(&name);
                             }
+                            return Value::Null;
+                        }
+                        "calc" => {
+                            match value {
+                                Value::Array(value) => {
+                                    if value.len() == 3 {
+                                        return self.calc(value);
+                                    } else {
+                                        return Value::Null;
+                                    }
+                                }
+                                _ => {
+                                    self.error("Unsupported data type for the println argument");
+                                }
+                            }
+                            return Value::Null;
+                        }
+                        name => {
+                            self.unk_token(&name);
+                            return Value::Null;
                         }
                     }
                 }
-                Value::String(name) => match name.as_str() {
+                Value::Null
+            }
+            Value::String(name) => {
+                match name.as_str() {
                     "Exit" => {
                         self.exit();
                     }
@@ -64,46 +95,123 @@ impl Interpreter {
                     value => {
                         self.print(&mut vec![Value::String(value.to_string())], false);
                     }
-                },
-                Value::Array(command) => {
-                    self.print(command, false);
                 }
-                _ => {
-                    self.error("Unsupported data type for the command");
-                }
+                Value::Null
             }
-
-            self.pos += 1;
+            Value::Array(command) => {
+                self.print(command, false);
+                Value::Null
+            }
+            _ => {
+                self.error("Unsupported data type for the command");
+                Value::Null
+            }
         }
     }
+
+    fn calc(&self, value: &mut Vec<Value>) -> Value {
+        let op1 = &value[0];
+        let operation = &value[1];
+        let op2 = &value[2];
+        match op1 {
+            Value::Number(op1) => match op2 {
+                Value::Number(op2) => {
+                    let op1 = op1.as_f64().unwrap();
+                    let op2 = op2.as_f64().unwrap();
+                    match operation {
+                        Value::String(operation) => match operation.as_str() {
+                            "+" => json!(op1 + op2),
+                            "-" => json!(op1 - op2),
+                            "/" => json!(op1 / op2),
+                            "*" => json!(op1 * op2),
+                            "%" => json!(op1 % op2),
+                            "&" => json!(op1 as i64 & op2 as i64),
+                            "|" => json!(op1 as i64 | op2 as i64),
+                            "^" => json!(op1 as i64 ^ op2 as i64),
+                            "<<" => json!((op1 as i64) << (op2 as i64)),
+                            ">>" => json!((op1 as i64) >> (op2 as i64)),
+                            name => {
+                                self.error(&format!(
+                                    "Unsupported operation type for calculation: {}",
+                                    name
+                                ));
+                                panic!();
+                            }
+                        },
+                        name => {
+                            self.error(&format!(
+                                "Unsupported operation type for calculation: {}",
+                                name
+                            ));
+                            panic!();
+                        }
+                    }
+                }
+                Value::Object(_) => self.calc(&mut vec![
+                    serde_json::Value::Number(op1.clone()),
+                    operation.clone(),
+                    self.eval_node(&mut op2.clone()),
+                ]),
+                _ => {
+                    self.error("Unsupported operand type for calculation");
+                    panic!();
+                }
+            },
+            Value::Object(_) => match op2 {
+                Value::Number(_) => self.calc(&mut vec![
+                    self.eval_node(&mut op1.clone()),
+                    operation.clone(),
+                    op2.clone(),
+                ]),
+                Value::Object(_) => self.calc(&mut vec![
+                    self.eval_node(&mut op1.clone()),
+                    Value::String(operation.to_string()),
+                    self.eval_node(&mut op2.clone()),
+                ]),
+                _ => {
+                    self.error("Unsupported operand type for calculation");
+                    panic!();
+                }
+            },
+            _ => {
+                self.error("Unsupported operand type for calculation");
+                panic!();
+            }
+        }
+    }
+
     fn print(&self, args: &mut Vec<Value>, ln: bool) {
         for arg in args {
-            match arg {
-                Value::Array(args) => {
-                    print!("{}", serde_json::to_string_pretty(args).unwrap());
-                }
-                Value::String(arg) => {
-                    print!("{}", arg);
-                }
-                Value::Bool(arg) => {
-                    print!("{}", arg.to_string().blue());
-                }
-                Value::Number(arg) => {
-                    print!("{}", arg.to_string().truecolor(180, 208, 143));
-                }
-                Value::Object(arg) => {
-                    print!("{}", serde_json::to_string_pretty(arg).unwrap());
-                }
-                Value::Null => {
-                    print!("{}", "null".blue());
-                }
-            }
+            self.print_one(arg);
             if ln == true {
                 println!();
             }
         }
         if ln == false {
             println!();
+        }
+    }
+
+    fn print_one(&self, arg: &Value) {
+        match arg {
+            Value::Array(args) => {
+                print!("{}", serde_json::to_string_pretty(args).unwrap());
+            }
+            Value::String(arg) => {
+                print!("{}", arg);
+            }
+            Value::Bool(arg) => {
+                print!("{}", arg.to_string().blue());
+            }
+            Value::Number(arg) => {
+                print!("{}", arg.to_string().truecolor(180, 208, 143));
+            }
+            Value::Object(arg) => {
+                self.print_one(&self.eval_node(&mut Value::Object(arg.clone())));
+            }
+            Value::Null => {
+                print!("{}", "null".blue());
+            }
         }
     }
     fn exit(&self) {
@@ -116,7 +224,7 @@ impl Interpreter {
     }
     fn unk_token(&self, name: &str) {
         println!(
-            "{} {} | {} {}",
+            "\n{} {} | {} {}",
             "Unexpected token name:".red(),
             name.bold().black(),
             "pos:".green(),
@@ -127,7 +235,7 @@ impl Interpreter {
 
     fn error(&self, name: &str) {
         println!(
-            "{} {} | {} {}",
+            "\n{} {} | {} {}",
             "Error:".red(),
             name.bold().black(),
             "pos:".green(),

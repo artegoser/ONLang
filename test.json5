@@ -1,91 +1,138 @@
 // Now the file with the extension .json5, but then it will be .onla
 
 [
-  //print functions
   {
-    print: ["Hello world", "! ", 1, "\n", ["wow"]],
-  },
-  {
-    println: ["Hello", "world", "!"],
-  },
-  {
-    print: "Fool",
-  },
-  "Really?",
-
-  [2, "Yes \n", true],
-
-  true, //throw error
-
-  //Exit functions
-  "Exit",
-  "ErrExit",
-
-  //TODO CONCEPTS ---------------------
-
-  //variables------------
-
-  //defining variables
-  {
-    let: {
-      var: "value",
-      anotherVar: true,
-    },
-  },
-
-  //print variables
-  { print: "@var" },
-  ["This is ", "@var"],
-
-  //assign variables
-  {
-    assign: { var: "newvalue" },
-  },
-
-  //-------------------
-
-  //math--------------
-  {
-    calc: ["@var", "+", 1],
-  },
-
-  //or
-  {
-    calc: ["@var", "+", { calc: [1, "*", 2] }],
-  },
-  //------------------
-
-  //comparison--------
-  {
-    comp: [1, ">=", "@var"],
-  },
-  //or
-  {
-    comp: [
-      { comp: [{ calc: [1, "+", 1] }, ">", 1] },
-      "&&",
-      { comp: ["@var", ">=", 2] },
-    ],
-  },
-  //------------------
-
-  //cycles
-  {
-    loop: [
+    print: [
+      "Test calc and recursion\n",
+      "(2+2*4) + 2 = ",
       {
-        let: {
-          var: "val",
-        },
+        calc: [{ calc: [2, "+", { calc: [2, "*", 4] }] }, "+", 2],
       },
-      "@var",
+      "\n",
     ],
   },
   {
-    while: {
-      cond: { comp: [1, ">=", "@var"] },
-      body: [
-        //commands
-      ],
-    },
+    print: [
+      "-----All operators-----\n\n\tNORMAL",
+      "\n\t2 * 3 = ",
+      { calc: [2, "*", 3] },
+      "\n\t6 / 2 = ",
+      { calc: [6, "/", 2.5] },
+      "\n\t2 + 3 = ",
+      { calc: [2, "+", 3] },
+      "\n\t2 - 3 = ",
+      { calc: [2, "-", 3] },
+
+      "\n\t2 % 2 = ",
+      { calc: [2, "%", 2] },
+      "\n\t3 % 2 = ",
+      { calc: [3, "%", 2] },
+
+      "\n\n\tBit operators",
+
+      "\n\t4 & 4 = ",
+      { calc: [4, "&", 4] },
+      "\n\t4 & 3 = ",
+      { calc: [4, "&", 3] },
+
+      "\n\t4 | 4 = ",
+      { calc: [4, "|", 4] },
+      "\n\t4 | 3 = ",
+      { calc: [4, "|", 3] },
+
+      "\n\t-8 >> 3 = ",
+      { calc: [-8, ">>", 3] },
+      "\n\t5 << 3 = ",
+      { calc: [5, "<<", 3] },
+
+      "\n\n--End of All operators--",
+    ],
   },
+  // //print functions
+  // {
+  //   print: ["Hello world", "! ", 1, "\n", ["wow"], "\n", { calc: [1, "+", 2] }],
+  // },
+  // {
+  //   println: ["Hello", "world", "!"],
+  // },
+  // {
+  //   print: "Fool",
+  // },
+  // "Really?",
+
+  // [2, "Yes \n", true],
+
+  // true, //throw error
+
+  // //Exit functions
+  // "Exit",
+  // "ErrExit",
+
+  // //TODO CONCEPTS ##########################################################################################################################################################################################################################
+
+  // //variables------------
+
+  // //defining variables
+  // {
+  //   let: {
+  //     var: "value",
+  //     anotherVar: true,
+  //   },
+  // },
+
+  // //print variables
+  // { print: "@var" },
+  // ["This is ", "@var"],
+
+  // //assign variables
+  // {
+  //   assign: { var: "newvalue" },
+  // },
+
+  // //-------------------
+
+  // //math--------------
+  // {
+  //   calc: ["@var", "+", 1],
+  // },
+
+  // //or
+  // {
+  //   calc: ["@var", "+", { calc: [1, "*", 2] }],
+  // },
+  // //------------------
+
+  // //comparison--------
+  // {
+  //   comp: [1, ">=", "@var"],
+  // },
+  // //or
+  // {
+  //   comp: [
+  //     { comp: [{ calc: [1, "+", 1] }, ">", 1] },
+  //     "&&",
+  //     { comp: ["@var", ">=", 2] },
+  //   ],
+  // },
+  // //------------------
+
+  // //cycles
+  // {
+  //   loop: [
+  //     {
+  //       let: {
+  //         var: "val",
+  //       },
+  //     },
+  //     "@var",
+  //   ],
+  // },
+  // {
+  //   while: {
+  //     cond: { comp: [1, ">=", "@var"] },
+  //     body: [
+  //       //commands
+  //     ],
+  //   },
+  // },
 ]
