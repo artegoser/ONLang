@@ -23,9 +23,8 @@ impl Interpreter {
 
         for command in arr {
             self.eval_node(command);
+            self.pos += 1;
         }
-
-        self.pos += 1;
     }
 
     fn eval_node(&self, command: &mut Value) -> Value {
@@ -66,6 +65,21 @@ impl Interpreter {
                                 Value::Array(value) => {
                                     if value.len() == 3 {
                                         return self.calc(value);
+                                    } else {
+                                        return Value::Null;
+                                    }
+                                }
+                                _ => {
+                                    self.error("Unsupported data type for the println argument");
+                                }
+                            }
+                            return Value::Null;
+                        }
+                        "comp" => {
+                            match value {
+                                Value::Array(value) => {
+                                    if value.len() == 3 {
+                                        return self.comp(value);
                                     } else {
                                         return Value::Null;
                                     }
@@ -138,17 +152,14 @@ impl Interpreter {
                                 panic!();
                             }
                         },
-                        name => {
-                            self.error(&format!(
-                                "Unsupported operation type for calculation: {}",
-                                name
-                            ));
+                        _ => {
+                            self.error("Unexpected operator token");
                             panic!();
                         }
                     }
                 }
                 Value::Object(_) => self.calc(&mut vec![
-                    serde_json::Value::Number(op1.clone()),
+                    Value::Number(op1.clone()),
                     operation.clone(),
                     self.eval_node(&mut op2.clone()),
                 ]),
@@ -165,7 +176,7 @@ impl Interpreter {
                 ]),
                 Value::Object(_) => self.calc(&mut vec![
                     self.eval_node(&mut op1.clone()),
-                    Value::String(operation.to_string()),
+                    operation.clone(),
                     self.eval_node(&mut op2.clone()),
                 ]),
                 _ => {
@@ -177,6 +188,121 @@ impl Interpreter {
                 self.error("Unsupported operand type for calculation");
                 panic!();
             }
+        }
+    }
+
+    fn comp(&self, value: &mut Vec<Value>) -> Value {
+        let op1 = &value[0];
+        let operation = &value[1];
+        let op2 = &value[2];
+        match op1 {
+            Value::Object(_) => match op2 {
+                Value::Object(_) => self.comp(&mut vec![
+                    self.eval_node(&mut op1.clone()),
+                    operation.clone(),
+                    self.eval_node(&mut op2.clone()),
+                ]),
+                _ => self.comp(&mut vec![
+                    self.eval_node(&mut op1.clone()),
+                    operation.clone(),
+                    op2.clone(),
+                ]),
+            },
+            Value::Number(op1) => match op2 {
+                Value::Object(_) => self.comp(&mut vec![
+                    Value::Number(op1.clone()),
+                    operation.clone(),
+                    self.eval_node(&mut op2.clone()),
+                ]),
+                Value::Number(op2) => {
+                    let op1 = op1.as_f64().unwrap();
+                    let op2 = op2.as_f64().unwrap();
+                    match operation {
+                        Value::String(operation) => match operation.as_str() {
+                            "==" => json!(op1 == op2),
+                            "!=" => json!(op1 != op2),
+                            ">" => json!(op1 > op2),
+                            "<" => json!(op1 < op2),
+                            ">=" => json!(op1 >= op2),
+                            "<=" => json!(op1 <= op2),
+                            name => {
+                                self.error(&format!(
+                                    "Unsupported operation type for comparison: {}",
+                                    name
+                                ));
+                                panic!();
+                            }
+                        },
+                        _ => {
+                            self.error("Unexpected operator token");
+                            panic!();
+                        }
+                    }
+                }
+                _ => {
+                    self.error("Unsupported operands types for comparison");
+                    panic!();
+                }
+            },
+            Value::Bool(op1) => match op2 {
+                Value::Object(_) => self.comp(&mut vec![
+                    Value::Bool(op1.clone()),
+                    operation.clone(),
+                    self.eval_node(&mut op2.clone()),
+                ]),
+                Value::Bool(op2) => match operation {
+                    Value::String(operation) => match operation.as_str() {
+                        "==" => json!(op1 == op2),
+                        "!=" => json!(op1 != op2),
+                        ">" => json!(op1 > op2),
+                        "<" => json!(op1 < op2),
+                        ">=" => json!(op1 >= op2),
+                        "<=" => json!(op1 <= op2),
+                        "&&" => json!(*op1 && *op2),
+                        "||" => json!(*op1 || *op2),
+                        name => {
+                            self.error(&format!(
+                                "Unsupported operation type for comparison: {}",
+                                name
+                            ));
+                            panic!();
+                        }
+                    },
+                    _ => {
+                        self.error("Unexpected operator token");
+                        panic!();
+                    }
+                },
+                _ => {
+                    self.error("Unsupported operands types for comparison");
+                    panic!();
+                }
+            },
+            _ => match op2 {
+                Value::Object(_) => self.comp(&mut vec![
+                    op1.clone(),
+                    operation.clone(),
+                    self.eval_node(&mut op2.clone()),
+                ]),
+
+                _ => match operation {
+                    Value::String(operation) => match operation.as_str() {
+                        "==" => json!(op1 == op2),
+                        "!=" => json!(op1 != op2),
+                        name => {
+                            self.error(&format!(
+                                "Unsupported operation type for comparison: {}",
+                                name
+                            ));
+                            panic!();
+                        }
+                    },
+                    _ => {
+                        self.error("Unexpected operator token");
+                        panic!();
+                    }
+                },
+            },
         }
     }
 
