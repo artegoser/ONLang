@@ -163,6 +163,7 @@
   ["After executing calculated = ", { var: "calculated" }],
 
   "\nRun loop",
+
   {
     loop: [
       {
@@ -174,10 +175,11 @@
         loop: [
           {
             if: {
-              condition: { comp: [{ var: "num" }, ">=", 200000] },
+              condition: { comp: [{ var: "num" }, ">=", 100000] },
               body: ["break"],
             },
           },
+
           {
             assign: {
               num: { calc: [{ var: "num" }, "+", 1] },
@@ -203,7 +205,7 @@
       },
       {
         if: {
-          condition: { comp: [{ var: "calculated" }, ">=", 200000] },
+          condition: { comp: [{ var: "calculated" }, ">=", 100000] },
           body: ["\n", "break"],
         },
       },
@@ -212,30 +214,43 @@
 
   {
     if: {
-      condition: { comp: [{ var: "calculated" }, ">=", 199999] },
-      body: [["Calculated is >= ", 199999]],
-      else: [["Calculated is < ", 199999]],
+      condition: { comp: [{ var: "calculated" }, ">=", 99999] },
+      body: [["сalculated is >= ", 99999]],
+      else: [["сalculated is < ", 99999]],
     },
   },
 
   {
     if: {
-      condition: { comp: [{ var: "calculated" }, ">", 200000] },
-      body: [["Calculated is > ", 200000]],
-      else: [["Calculated is <= ", 200000]],
+      condition: { comp: [{ var: "calculated" }, ">", 100000] },
+      body: [["сalculated is > ", 100000]],
+      else: [["сalculated is <= ", 100000]],
     },
   },
 
-  "clear",
+  { let: { i: 0 } },
 
-  // //TODO CONCEPTS ##########################################################################################################################################################################################################################
+  "\nLoop with sleep",
 
-  // {
-  //   while: {
-  //     cond: { comp: [1, ">=", {var: "variable"}] },
-  //     body: [
-  //       //commands
-  //     ],
-  //   },
-  // },
+  {
+    loop: [
+      {
+        if: {
+          condition: { comp: [{ var: "i" }, ">=", 10] },
+          body: ["break"],
+        },
+      },
+      { assign: { i: { calc: [{ var: "i" }, "+", 1] } } },
+      { print: ["\ri = ", { var: "i" }] },
+      { sleep: 500 },
+    ],
+  },
+
+  "\nInput a var",
+  {
+    let: {
+      name: { input: "Your name: " },
+    },
+  },
+  { print: ["Bye, ", { var: "name" }, "!"] },
 ]

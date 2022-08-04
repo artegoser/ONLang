@@ -2,6 +2,8 @@ use colored::*;
 use json5;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
+use std::io::{self, Write};
+use std::{thread, time};
 pub struct Interpreter {
     input: String,
     vars: HashMap<String, Value>,
@@ -18,8 +20,8 @@ impl Interpreter {
     }
 
     pub fn run(&mut self) {
-        let obj = json5::from_str::<Value>(&self.input).unwrap();
-        let arr = obj.as_array().unwrap();
+        let obj = json5::from_str::<Value>(&self.input).expect("Your json is invalid!");
+        let arr = obj.as_array().expect("Json must be an array!");
 
         for command in arr {
             self.eval_node(command);
@@ -102,6 +104,22 @@ impl Interpreter {
                                 self.error("Unsupported data type for the let argument");
                             }
                         },
+                        "input" => match value {
+                            Value::String(value) => {
+                                return self.input(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the input argument");
+                            }
+                        },
+                        "sleep" => match value {
+                            Value::Number(value) => {
+                                self.sleep(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the sleep argument");
+                            }
+                        },
                         "if" => match value {
                             Value::Object(value) => {
                                 return self.if_node(value);
@@ -150,8 +168,21 @@ impl Interpreter {
         return Value::Null;
     }
 
+    fn sleep(&self, value: &serde_json::Number) {
+        let value = value.as_f64().unwrap() as u64;
+        thread::sleep(time::Duration::from_millis(value));
+    }
+
     fn clear(&self) {
         print!("{}[2J", 27 as char);
+    }
+
+    fn input(&self, value: &String) -> Value {
+        let mut input = String::new();
+        print!("{}", value);
+        io::stdout().flush().unwrap_or_default();
+        io::stdin().read_line(&mut input).unwrap_or_default();
+        Value::String(input.trim_end().to_string())
     }
 
     fn if_node(&mut self, value: &Map<String, Value>) -> Value {
@@ -477,6 +508,7 @@ impl Interpreter {
         if ln == true {
             println!();
         }
+        io::stdout().flush().unwrap_or_default();
     }
 
     fn print_one(&mut self, arg: &Value) {
