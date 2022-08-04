@@ -131,6 +131,9 @@ impl Interpreter {
                 "ErrExit" => {
                     self.err_exit();
                 }
+                "clear" => {
+                    self.clear();
+                }
                 "break" => return Value::String("break".to_string()),
                 "continue" => return Value::String("continue".to_string()),
                 value => {
@@ -145,6 +148,10 @@ impl Interpreter {
             }
         }
         return Value::Null;
+    }
+
+    fn clear(&self) {
+        print!("{}[2J", 27 as char);
     }
 
     fn if_node(&mut self, value: &Map<String, Value>) -> Value {
