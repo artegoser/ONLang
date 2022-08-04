@@ -170,7 +170,37 @@
           calculated: { calc: [{ var: "calculated" }, "+", 1] },
         },
       },
-      { print: ["\rcalculated = ", { var: "calculated" }] },
+      {
+        loop: [
+          {
+            if: {
+              condition: { comp: [{ var: "num" }, ">=", 200000] },
+              body: ["break"],
+            },
+          },
+          {
+            assign: {
+              num: { calc: [{ var: "num" }, "+", 1] },
+            },
+          },
+          {
+            print: [
+              "\rcalculated = ",
+              { var: "calculated" },
+              "; num = ",
+              { var: "num" },
+            ],
+          },
+        ],
+      },
+      {
+        print: [
+          "\rcalculated = ",
+          { var: "calculated" },
+          "; num = ",
+          { var: "num" },
+        ],
+      },
       {
         if: {
           condition: { comp: [{ var: "calculated" }, ">=", 200000] },
