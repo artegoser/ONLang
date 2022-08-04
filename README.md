@@ -22,7 +22,7 @@ or
 1. Clone this repo
 2. `cargo run --quiet --release -- example.json5`
 
-## 4. How to write on this
+## 4. How to write in this language
 
 [Documentation](doc/main.md)
 
