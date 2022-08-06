@@ -6,13 +6,13 @@
 
 ```json5
 [
-  "Just string in array",
-  ["array", "of", "strings"],
+  "Just string in array", //equally println: "Just string in array"
+  ["array", "of", "strings"], // equally println: ["in Function"]
   {
-    print: ["Function"],
+    print: ["in Function"],
   },
   {
-    println: ["Function"],
+    println: ["in Function"],
   },
 ]
 ```
