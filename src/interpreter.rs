@@ -50,7 +50,7 @@ impl Interpreter {
                                 self.print(&vec![Value::String(value.to_string())], false);
                             }
                             _ => {
-                                self.error("Unsupported data type for the print argument");
+                                self.error("Unsupported data type for the `print` argument, must be a string or an array");
                             }
                         },
                         "println" => match value {
@@ -61,7 +61,7 @@ impl Interpreter {
                                 self.print(&vec![Value::String(value.to_string())], true);
                             }
                             _ => {
-                                self.error("Unsupported data type for the println argument");
+                                self.error("Unsupported data type for the `println` argument, must be a string or an array");
                             }
                         },
                         "calc" => match value {
@@ -69,11 +69,11 @@ impl Interpreter {
                                 if value.len() == 3 {
                                     return self.calc(value);
                                 } else {
-                                    self.error("Unsupported data type for the calc arguments");
+                                    self.error("Unsupported data type for the `calc` arguments, must be an array with three arguments");
                                 }
                             }
                             _ => {
-                                self.error("Unsupported data type for the calc arguments");
+                                self.error("Unsupported data type for the `calc` arguments, must be an array with three arguments");
                             }
                         },
                         "comp" => match value {
@@ -81,11 +81,11 @@ impl Interpreter {
                                 if value.len() == 3 {
                                     return self.comp(value);
                                 } else {
-                                    self.error("Unsupported data type for the comp arguments");
+                                    self.error("Unsupported data type for the `comp` arguments, must be an array with three arguments");
                                 }
                             }
                             _ => {
-                                self.error("Unsupported data type for the comp arguments");
+                                self.error("Unsupported data type for the `comp` arguments, must be an array with three arguments");
                             }
                         },
                         "let" => match value {
@@ -93,7 +93,7 @@ impl Interpreter {
                                 return self.define(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the let argument");
+                                self.error("Unsupported data type for the `let` argument, must be an object");
                             }
                         },
                         "assign" => match value {
@@ -101,7 +101,7 @@ impl Interpreter {
                                 return self.assign(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the let argument");
+                                self.error("Unsupported data type for the `assign` argument, must be an object");
                             }
                         },
                         "var" => match value {
@@ -109,7 +109,7 @@ impl Interpreter {
                                 return self.get_var(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the let argument");
+                                self.error("Unsupported data type for the `var` argument, must be a string");
                             }
                         },
                         "input" => match value {
@@ -117,7 +117,7 @@ impl Interpreter {
                                 return self.input(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the input argument");
+                                self.error("Unsupported data type for the `input` argument, must be a string");
                             }
                         },
                         "sleep" => match value {
@@ -125,7 +125,7 @@ impl Interpreter {
                                 self.sleep(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the sleep argument");
+                                self.error("Unsupported data type for the `sleep` argument, must be a number");
                             }
                         },
                         "if" => match value {
@@ -133,7 +133,7 @@ impl Interpreter {
                                 return self.if_node(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the if argument");
+                                self.error("Unsupported data type for the `if` argument, must be an object");
                             }
                         },
                         "loop" => match value {
@@ -141,7 +141,7 @@ impl Interpreter {
                                 return self.loop_cycle(value);
                             }
                             _ => {
-                                self.error("Unsupported data type for the loop cycle argument");
+                                self.error("Unsupported data type for the `loop cycle` argument, must be an array");
                             }
                         },
                         name => {
