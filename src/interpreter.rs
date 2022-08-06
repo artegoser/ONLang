@@ -20,8 +20,16 @@ impl Interpreter {
     }
 
     pub fn run(&mut self) {
-        let obj = json5::from_str::<Value>(&self.input).expect("Your json is invalid!");
-        let arr = obj.as_array().expect("Json must be an array!");
+        let obj: serde_json::Value = json5::from_str::<Value>(&self.input).unwrap_or_else(|_| {
+            serde_yaml::from_str(&self.input)
+                .expect("Your file format is invalid! (supported: json, json5 or yaml)")
+        });
+        let arr = obj.as_array().unwrap_or_else(|| {
+            obj.get("main")
+                .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                .as_array()
+                .expect("The program must be an array of commands")
+        });
 
         for command in arr {
             self.eval_node(command);
