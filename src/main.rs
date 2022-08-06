@@ -20,7 +20,10 @@ fn main() {
     if args.verbose == true {
         println!("Running: {}\n", args.file);
     }
-    let file_input = fs::read_to_string(args.file).unwrap().parse().unwrap();
+    let file_input = fs::read_to_string(args.file)
+        .expect("File reading error")
+        .parse()
+        .unwrap();
 
     let mut onint = Interpreter::new(file_input);
 
