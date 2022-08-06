@@ -6,7 +6,7 @@ ONLang - Object Notation Language (js`ON`)
 
 ## 1. God, what the f\*\*\*\* is this
 
-ONLang is an experimental, esoteric programming language, that allows you to use (**json or yaml**) for **PROGRAMMING**. The interpreter currently supports only json5 format.
+ONLang is an experimental, esoteric programming language, that allows you to use (**json, json5 or yaml**) for **PROGRAMMING**.
 
 ## 2. What is it for
 
