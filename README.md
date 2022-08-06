@@ -12,18 +12,20 @@ ONLang is an experimental, esoteric programming language, that allows you to use
 
 For writing simple scripts.
 
-## 3. How run scripts
+## 3. How to write in this language
+
+[Documentation](doc/main.md)
+
+## Installing
+
+## Using
 
 1. Add the executable file to the path variable
-2. `on example/example.json5`
+2. `onla example/example.json5`
 
 or
 
 1. Clone this repo
 2. `cargo run --quiet --release -- example/example.json5`
-
-## 4. How to write in this language
-
-[Documentation](doc/main.md)
 
 If you want to help create a pull request

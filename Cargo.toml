@@ -1,9 +1,20 @@
 [package]
-name = "on"
+name = "onla"
 version = "0.1.0"
 edition = "2021"
+author = ["artegoser"]
+license = "MIT"
+description = "A programming language running on json or yaml"
+repository = "https://github.com/artegoser/ONLang"
+homepage = "https://github.com/artegoser/ONLang"
+documentation = "https://github.com/artegoser/ONLang/blob/master/doc/main.md"
+readme = "./README.md"
+keywords = ["programming-language", "interpreter", "yaml", "json", "json5"]
+categories = ["compilers"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "onla"
+path = "src/main.rs"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
