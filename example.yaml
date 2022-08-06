@@ -1,0 +1,33 @@
+﻿main:
+  - let:
+      i: 0
+  - loop:
+      - if:
+          condition:
+            comp:
+              - var: i
+              - ">="
+              - 10
+          body:
+            - "\n"
+            - break
+      - assign:
+          i:
+            calc:
+              - var: i
+              - +
+              - 1
+      - print:
+          - "\ri = "
+          - var: i
+      - sleep: 500
+
+  - println: Test
+  - Input a var
+  - let:
+      name:
+        input: "Your name: "
+  - print:
+      - "Bye, "
+      - var: name
+      - "!"
