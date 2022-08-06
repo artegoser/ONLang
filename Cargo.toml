@@ -1,5 +1,5 @@
 [package]
-name = "onla"
+name = "onlang"
 version = "0.1.0"
 edition = "2021"
 authors = ["artegoser"]
@@ -13,7 +13,7 @@ keywords = ["programming-language", "interpreter", "yaml", "json", "json5"]
 categories = ["compilers"]
 
 [[bin]]
-name = "onla"
+name = "on"
 path = "src/main.rs"
 
 [dependencies]

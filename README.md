@@ -18,13 +18,13 @@ For writing simple scripts.
 
 ## Installation
 
-`cargo install onla`  
+`cargo install onlang`  
 or  
 Get binary from [releases](https://github.com/artegoser/ONLang/releases) and add the executable file to the PATH variable
 
 ## Using
 
-`onla examples/example.json5`
+`on examples/example.json5`
 
 or
 
