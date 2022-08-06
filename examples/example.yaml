@@ -22,7 +22,7 @@
           - var: i
       - sleep: 500
 
-  - println: Test
+  - Test
   - Input a var
   - let:
       name:
