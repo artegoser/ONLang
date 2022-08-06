@@ -2,7 +2,7 @@
 name = "onla"
 version = "0.1.0"
 edition = "2021"
-author = ["artegoser"]
+authors = ["artegoser"]
 license = "MIT"
 description = "A programming language running on json or yaml"
 repository = "https://github.com/artegoser/ONLang"

@@ -16,16 +16,19 @@ For writing simple scripts.
 
 [Documentation](doc/main.md)
 
-## Installing
+## Installation
+
+`cargo install onla`  
+or  
+Get binary from [releases](https://github.com/artegoser/ONLang/releases) and add the executable file to the PATH variable
 
 ## Using
 
-1. Add the executable file to the path variable
-2. `onla example/example.json5`
+`onla examples/example.json5`
 
 or
 
 1. Clone this repo
-2. `cargo run --quiet --release -- example/example.json5`
+2. `cargo run --quiet --release -- examples/example.json5`
 
 If you want to help create a pull request
