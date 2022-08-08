@@ -14,7 +14,7 @@
 - [x] delete variable
 - [ ] types conversion
 - [ ] checking variable type
-- [ ] checking for the existence of a variable
-- [ ] create scopes without if, else, loop
+- [x] checking for the existence of a variable
+- [x] create scopes without if, else, loop
 
 and something else
