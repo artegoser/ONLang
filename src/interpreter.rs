@@ -90,7 +90,7 @@ impl Interpreter {
                         },
                         "let" => match value {
                             Value::Object(value) => {
-                                return self.define(value);
+                                self.define(value);
                             }
                             _ => {
                                 self.error("Unsupported data type for the `let` argument, must be an object");
@@ -98,7 +98,7 @@ impl Interpreter {
                         },
                         "assign" => match value {
                             Value::Object(value) => {
-                                return self.assign(value);
+                                self.assign(value);
                             }
                             _ => {
                                 self.error("Unsupported data type for the `assign` argument, must be an object");
@@ -106,7 +106,7 @@ impl Interpreter {
                         },
                         "var" => match value {
                             Value::String(value) => {
-                                return self.get_var(value);
+                                self.get_var(value);
                             }
                             _ => {
                                 self.error("Unsupported data type for the `var` argument, must be a string");
@@ -283,7 +283,7 @@ impl Interpreter {
         "end".to_string()
     }
 
-    fn define(&mut self, vars: &Map<String, Value>) -> Value {
+    fn define(&mut self, vars: &Map<String, Value>) {
         for (name, value) in vars {
             if !self.var_exists(&name) {
                 match value {
@@ -297,24 +297,27 @@ impl Interpreter {
                 }
             } else {
                 self.error(&format!("The variable {} already exist, use assign", name));
-                panic!()
+                panic!();
             }
         }
-        Value::Null
     }
 
-    fn get_var(&mut self, var_name: &String) -> Value {
+    fn delete(&mut self, var_name: &String) {}
+
+    fn get_var(&mut self, var_name: &String) {
         let var = self.vars.get(var_name);
         match var {
-            Some(var) => var.clone(),
+            Some(var) => {
+                var.clone();
+            }
             None => {
                 self.error(&format!("The variable {} does not exist", var_name));
-                panic!()
+                panic!();
             }
         }
     }
 
-    fn assign(&mut self, vars: &Map<String, Value>) -> Value {
+    fn assign(&mut self, vars: &Map<String, Value>) {
         for (name, value) in vars {
             if self.var_exists(&name) {
                 match value {
@@ -331,7 +334,6 @@ impl Interpreter {
                 panic!();
             }
         }
-        Value::Null
     }
 
     fn var_exists(&self, name: &String) -> bool {
