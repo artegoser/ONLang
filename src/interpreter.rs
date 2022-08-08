@@ -285,14 +285,19 @@ impl Interpreter {
 
     fn define(&mut self, vars: &Map<String, Value>) -> Value {
         for (name, value) in vars {
-            match value {
-                Value::Object(_) => {
-                    let value = self.eval_node(value);
-                    self.vars.insert(name.to_string(), value);
+            if !self.var_exists(&name) {
+                match value {
+                    Value::Object(_) => {
+                        let value = self.eval_node(value);
+                        self.vars.insert(name.to_string(), value);
+                    }
+                    _ => {
+                        self.vars.insert(name.to_string(), value.clone());
+                    }
                 }
-                _ => {
-                    self.vars.insert(name.to_string(), value.clone());
-                }
+            } else {
+                self.error(&format!("The variable {} already exist, use assign", name));
+                panic!()
             }
         }
         Value::Null
@@ -311,9 +316,8 @@ impl Interpreter {
 
     fn assign(&mut self, vars: &Map<String, Value>) -> Value {
         for (name, value) in vars {
-            let var = self.vars.get(name);
-            match var {
-                Some(_) => match value {
+            if self.var_exists(&name) {
+                match value {
                     Value::Object(_) => {
                         let value = self.eval_node(value);
                         self.vars.insert(name.to_string(), value);
@@ -321,14 +325,20 @@ impl Interpreter {
                     _ => {
                         self.vars.insert(name.to_string(), value.clone());
                     }
-                },
-                None => {
-                    self.error(&format!("The variable {} does not exist", name));
-                    panic!();
                 }
+            } else {
+                self.error(&format!("The variable {} does not exist, use define", name));
+                panic!();
             }
         }
         Value::Null
+    }
+
+    fn var_exists(&self, name: &String) -> bool {
+        match self.vars.get(name) {
+            Some(_) => true,
+            None => false,
+        }
     }
 
     fn calc(&mut self, value: &Vec<Value>) -> Value {

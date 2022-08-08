@@ -3,7 +3,6 @@
 - [ ] Functions
 - [ ] imports
 - [ ] scopes of visibility
-- [ ] parallel tasks `{parallel:[..tasks]}`
 - [ ] types conversion
 - [ ] methods for arrays
 - [ ] methods for strings
@@ -12,5 +11,6 @@
 - [x] yaml support?
 - [ ] command execution function
 - [ ] function for random
+- [ ] delete variable
 
 and something else
