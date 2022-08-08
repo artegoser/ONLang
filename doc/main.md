@@ -138,3 +138,17 @@ works only with numbers (and variables with number type)
   { print: ["Bye, ", { var: "name" }, "!"] },
 ]
 ```
+
+## Delete variable
+
+```json5
+[
+  {
+    let: {
+      name: { input: "Your name: " },
+    },
+  },
+  { print: ["Bye, ", { var: "name" }, "!"] },
+  { delete: "name" }, //deletes variable from memory
+]
+```

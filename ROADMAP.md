@@ -2,8 +2,8 @@
 
 - [ ] Functions
 - [ ] imports
-- [ ] scopes of visibility
-- [ ] types conversion
+- [x] scopes of visibility
+
 - [ ] methods for arrays
 - [ ] methods for strings
 - [ ] methods for objects
@@ -11,6 +11,10 @@
 - [x] yaml support?
 - [ ] command execution function
 - [ ] function for random
-- [ ] delete variable
+- [x] delete variable
+- [ ] types conversion
+- [ ] checking variable type
+- [ ] checking for the existence of a variable
+- [ ] create scopes without if, else, loop
 
 and something else
