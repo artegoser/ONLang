@@ -152,3 +152,11 @@ works only with numbers (and variables with number type)
   { delete: "name" }, //deletes variable from memory
 ]
 ```
+
+## Create scope
+
+```json5
+[
+  {scope:[..commands]}
+]
+```

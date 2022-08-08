@@ -245,6 +245,17 @@
     ],
   },
 
+  "\n\nCheck scopes of visibility",
+  {
+    scope: [
+      { let: { scoped: "Value" } },
+      ["scoped = ", { var: "scoped" }],
+      ['isExist("scoped"): ', { isExist: "scoped" }],
+    ],
+  },
+  "After scope",
+  ['isExist("scoped"): ', { isExist: "scoped" }],
+
   "\nInput a var",
   {
     let: {
