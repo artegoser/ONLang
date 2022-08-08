@@ -1,3 +1,4 @@
+use crate::types::*;
 use colored::*;
 use json5;
 use serde_json::{json, Map, Value};
@@ -6,8 +7,9 @@ use std::io::{self, Write};
 use std::{thread, time};
 pub struct Interpreter {
     input: String,
-    vars: HashMap<String, Value>,
+    vars: HashMap<String, Var>,
     pos: usize,
+    scope: usize,
 }
 
 impl Interpreter {
@@ -16,6 +18,7 @@ impl Interpreter {
             input,
             vars: HashMap::new(),
             pos: 1,
+            scope: 0,
         }
     }
 
@@ -110,6 +113,14 @@ impl Interpreter {
                             }
                             _ => {
                                 self.error("Unsupported data type for the `var` argument, must be a string");
+                            }
+                        },
+                        "delete" => match value {
+                            Value::String(value) => {
+                                self.delete(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `delete` argument, must be a string");
                             }
                         },
                         "input" => match value {
@@ -273,6 +284,7 @@ impl Interpreter {
     }
 
     fn run_nodes(&mut self, arr: &Vec<Value>) -> String {
+        self.scope += 1;
         for command in arr {
             let to_do = self.eval_node(command);
             match to_do {
@@ -280,7 +292,18 @@ impl Interpreter {
                 _ => {}
             }
         }
+        self.delete_last_scope();
+        self.scope -= 1;
         "end".to_string()
+    }
+
+    fn delete_last_scope(&mut self) {
+        let vars = self.vars.clone().into_iter();
+        for (k, v) in vars {
+            if v.scope == self.scope {
+                self.delete(&k);
+            }
+        }
     }
 
     fn define(&mut self, vars: &Map<String, Value>) {
@@ -289,10 +312,18 @@ impl Interpreter {
                 match value {
                     Value::Object(_) => {
                         let value = self.eval_node(value);
-                        self.vars.insert(name.to_string(), value);
+                        self.vars.insert(
+                            name.to_string(),
+                            Var {
+                                scope: self.scope,
+                                body: value,
+                            },
+                        );
                     }
                     _ => {
-                        self.vars.insert(name.to_string(), value.clone());
+                        self.vars.insert(
+                            name.to_string(),
+                            Var {
                     }
                 }
             } else {
@@ -302,14 +333,33 @@ impl Interpreter {
         }
     }
 
-    fn delete(&mut self, var_name: &String) {}
+    fn delete(&mut self, var_name: &String) {
+        if self.var_exists(var_name) {
+            self.vars.remove(var_name);
+        } else {
+            self.error(&format!(
+                "The variable {} does not exist and cannot be deleted",
+                var_name
+            ));
+            panic!();
+        }
+    }
 
-    fn get_var(&mut self, var_name: &String) {
+    fn get_var(&mut self, var_name: &String) -> Value {
         let var = self.vars.get(var_name);
         match var {
-            Some(var) => {
-                var.clone();
+            Some(var) => var.body.clone(),
+            None => {
+                self.error(&format!("The variable {} does not exist", var_name));
+                panic!();
             }
+        }
+    }
+
+    fn get_var_scope(&mut self, var_name: &String) -> usize {
+        let var = self.vars.get(var_name);
+        match var {
+            Some(var) => var.scope,
             None => {
                 self.error(&format!("The variable {} does not exist", var_name));
                 panic!();
@@ -319,19 +369,22 @@ impl Interpreter {
 
     fn assign(&mut self, vars: &Map<String, Value>) {
         for (name, value) in vars {
-            if self.var_exists(&name) {
-                match value {
-                    Value::Object(_) => {
-                        let value = self.eval_node(value);
-                        self.vars.insert(name.to_string(), value);
-                    }
-                    _ => {
-                        self.vars.insert(name.to_string(), value.clone());
-                    }
+            let scope = self.get_var_scope(name);
+            match value {
+                Value::Object(_) => {
+                    let value = self.eval_node(value);
+                    self.vars
+                        .insert(name.to_string(), Var { scope, body: value });
                 }
-            } else {
-                self.error(&format!("The variable {} does not exist, use define", name));
-                panic!();
+                _ => {
+                    self.vars.insert(
+                        name.to_string(),
+                        Var {
+                            scope,
+                            body: value.clone(),
+                        },
+                    );
+                }
             }
         }
     }

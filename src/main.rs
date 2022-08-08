@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::fs;
 use std::time::Instant;
+mod types;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
