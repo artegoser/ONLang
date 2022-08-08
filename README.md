@@ -1,5 +1,4 @@
 ![onlang logo](static/logos/OnLang-transparent.png)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fartegoser%2FONLang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fartegoser%2FONLang?ref=badge_shield)
 
 # You may have questions
 
@@ -15,7 +14,32 @@ For writing simple scripts.
 
 ## 3. How to write in this language
 
-[Documentation](doc/main.md)
+Variants of the "Hello World!"
+
+on json5
+
+```json5
+[
+  "Hello world!",
+  ["Hello", " world!" ]
+  {println:"Hello world!"},
+  {println:["Hello world!"]},
+]
+```
+
+on yaml
+
+```yaml
+main:
+  - Hello world!
+  - - Hello
+    - " world!"
+  - println: Hello world!
+  - println:
+      - Hello world!
+```
+
+Check the [Documentation](doc/main.md)
 
 ## Installation
 
@@ -34,6 +58,6 @@ or
 
 If you want to help create a pull request
 
-
 ## License
+
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fartegoser%2FONLang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fartegoser%2FONLang?ref=badge_large)
