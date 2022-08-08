@@ -107,12 +107,21 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `assign` argument, must be an object");
                             }
                         },
+
                         "var" => match value {
                             Value::String(value) => {
-                                self.get_var(value);
+                                return self.get_var(value);
                             }
                             _ => {
                                 self.error("Unsupported data type for the `var` argument, must be a string");
+                            }
+                        },
+                        "isExist" => match value {
+                            Value::String(value) => {
+                                return Value::Bool(self.var_exists(value));
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `isExist` argument, must be a string");
                             }
                         },
                         "delete" => match value {
@@ -153,6 +162,14 @@ impl Interpreter {
                             }
                             _ => {
                                 self.error("Unsupported data type for the `loop cycle` argument, must be an array");
+                            }
+                        },
+                        "scope" => match value {
+                            Value::Array(value) => {
+                                self.run_nodes(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `scope` argument, must be an array");
                             }
                         },
                         name => {
@@ -324,6 +341,10 @@ impl Interpreter {
                         self.vars.insert(
                             name.to_string(),
                             Var {
+                                scope: self.scope,
+                                body: value.clone(),
+                            },
+                        );
                     }
                 }
             } else {
