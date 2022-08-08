@@ -1,4 +1,5 @@
 ![onlang logo](static/logos/OnLang-transparent.png)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fartegoser%2FONLang.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fartegoser%2FONLang?ref=badge_shield)
 
 # You may have questions
 
@@ -32,3 +33,7 @@ or
 2. `cargo run --quiet --release -- examples/example.json5`
 
 If you want to help create a pull request
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fartegoser%2FONLang.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fartegoser%2FONLang?ref=badge_large)
