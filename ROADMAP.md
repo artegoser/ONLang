@@ -16,5 +16,6 @@
 - [ ] checking variable type
 - [x] checking for the existence of a variable
 - [x] create scopes without if, else, loop
+- [ ] calculate values in arrays
 
 and something else

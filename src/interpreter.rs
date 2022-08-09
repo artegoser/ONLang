@@ -242,7 +242,6 @@ impl Interpreter {
                                 if name == "continue" {
                                     return Value::String("continue".to_string());
                                 }
-                                return Value::Null;
                             } else {
                                 let name = self.run_nodes(else_nodes);
                                 if name == "break" {
@@ -251,7 +250,6 @@ impl Interpreter {
                                 if name == "continue" {
                                     return Value::String("continue".to_string());
                                 }
-                                return Value::Null;
                             };
                         }
                         _ => {
@@ -263,9 +261,7 @@ impl Interpreter {
                                 if name == "continue" {
                                     return Value::String("continue".to_string());
                                 }
-                                return Value::Null;
                             }
-                            return Value::Null;
                         }
                     },
                     None => {
@@ -277,18 +273,16 @@ impl Interpreter {
                             if name == "continue" {
                                 return Value::String("continue".to_string());
                             }
-                            return Value::Null;
                         }
-                        return Value::Null;
                     }
                 },
-                _ => return Value::Null,
+                _ => {}
             },
             None => {
                 self.error("if must have a body");
-                panic!()
             }
         }
+        Value::Null
     }
 
     fn loop_cycle(&mut self, value: &Vec<Value>) -> Value {
@@ -354,7 +348,6 @@ impl Interpreter {
                 }
             } else {
                 self.error(&format!("The variable {} already exist, use assign", name));
-                panic!();
             }
         }
     }
@@ -368,7 +361,6 @@ impl Interpreter {
                     "The variable {} does not exist and cannot be deleted",
                     var_name
                 ));
-                panic!();
             }
         }
     }
@@ -376,23 +368,23 @@ impl Interpreter {
     fn get_var(&mut self, var_name: &String) -> Value {
         let var = self.vars.get(var_name);
         match var {
-            Some(var) => var.body.clone(),
+            Some(var) => return var.body.clone(),
             None => {
                 self.error(&format!("The variable {} does not exist", var_name));
-                panic!();
             }
         }
+        Value::Null
     }
 
     fn get_var_scope(&mut self, var_name: &String) -> usize {
         let var = self.vars.get(var_name);
         match var {
-            Some(var) => var.scope,
+            Some(var) => return var.scope,
             None => {
                 self.error(&format!("The variable {} does not exist", var_name));
-                panic!();
             }
         }
+        0
     }
 
     fn assign(&mut self, vars: &Map<String, Value>) {
@@ -435,60 +427,56 @@ impl Interpreter {
                     let op2 = op2.as_f64().unwrap();
                     match operation {
                         Value::String(operation) => match operation.as_str() {
-                            "+" => json!(op1 + op2),
-                            "-" => json!(op1 - op2),
-                            "/" => json!(op1 / op2),
-                            "*" => json!(op1 * op2),
-                            "%" => json!(op1 % op2),
-                            "&" => json!(op1 as i64 & op2 as i64),
-                            "|" => json!(op1 as i64 | op2 as i64),
-                            "^" => json!(op1 as i64 ^ op2 as i64),
-                            "<<" => json!((op1 as i64) << (op2 as i64)),
-                            ">>" => json!((op1 as i64) >> (op2 as i64)),
+                            "+" => return json!(op1 + op2),
+                            "-" => return json!(op1 - op2),
+                            "/" => return json!(op1 / op2),
+                            "*" => return json!(op1 * op2),
+                            "%" => return json!(op1 % op2),
+                            "&" => return json!(op1 as i64 & op2 as i64),
+                            "|" => return json!(op1 as i64 | op2 as i64),
+                            "^" => return json!(op1 as i64 ^ op2 as i64),
+                            "<<" => return json!((op1 as i64) << (op2 as i64)),
+                            ">>" => return json!((op1 as i64) >> (op2 as i64)),
                             name => {
                                 self.error(&format!(
                                     "Unsupported operation type for calculation: {}",
                                     name
                                 ));
-                                panic!();
                             }
                         },
                         _ => {
                             self.error("Unexpected operator token");
-                            panic!();
                         }
                     }
                 }
                 Value::Object(_) => {
                     let op1 = Value::Number(op1.clone());
                     let op2 = self.eval_node(&op2.clone());
-                    self.calc(&vec![op1, operation.clone(), op2])
+                    return self.calc(&vec![op1, operation.clone(), op2]);
                 }
                 _ => {
                     self.error("Unsupported operand type for calculation");
-                    panic!();
                 }
             },
             Value::Object(_) => match op2 {
                 Value::Number(_) => {
                     let op1 = self.eval_node(&op1.clone());
-                    self.calc(&vec![op1, operation.clone(), op2.clone()])
+                    return self.calc(&vec![op1, operation.clone(), op2.clone()]);
                 }
                 Value::Object(_) => {
                     let op1 = self.eval_node(&op1.clone());
                     let op2 = self.eval_node(&op2.clone());
-                    self.calc(&vec![op1, operation.clone(), op2])
+                    return self.calc(&vec![op1, operation.clone(), op2]);
                 }
                 _ => {
                     self.error("Unsupported operand type for calculation");
-                    panic!();
                 }
             },
             _ => {
                 self.error("Unsupported operand type for calculation");
-                panic!();
             }
         }
+        Value::Null
     }
 
     fn comp(&mut self, value: &Vec<Value>) -> Value {
@@ -500,106 +488,99 @@ impl Interpreter {
                 Value::Object(_) => {
                     let op1 = self.eval_node(&op1.clone());
                     let op2 = self.eval_node(&op2.clone());
-                    self.comp(&vec![op1, operation.clone(), op2])
+                    return self.comp(&vec![op1, operation.clone(), op2]);
                 }
                 _ => {
                     let op1 = self.eval_node(&op1.clone());
-                    self.comp(&vec![op1, operation.clone(), op2.clone()])
+                    return self.comp(&vec![op1, operation.clone(), op2.clone()]);
                 }
             },
             Value::Number(op1) => match op2 {
                 Value::Object(_) => {
                     let op2 = self.eval_node(&op2.clone());
-                    self.comp(&vec![Value::Number(op1.clone()), operation.clone(), op2])
+                    return self.comp(&vec![Value::Number(op1.clone()), operation.clone(), op2]);
                 }
                 Value::Number(op2) => {
                     let op1 = op1.as_f64().unwrap();
                     let op2 = op2.as_f64().unwrap();
                     match operation {
                         Value::String(operation) => match operation.as_str() {
-                            "==" => json!(op1 == op2),
-                            "!=" => json!(op1 != op2),
-                            ">" => json!(op1 > op2),
-                            "<" => json!(op1 < op2),
-                            ">=" => json!(op1 >= op2),
-                            "<=" => json!(op1 <= op2),
+                            "==" => return json!(op1 == op2),
+                            "!=" => return json!(op1 != op2),
+                            ">" => return json!(op1 > op2),
+                            "<" => return json!(op1 < op2),
+                            ">=" => return json!(op1 >= op2),
+                            "<=" => return json!(op1 <= op2),
                             name => {
                                 self.error(&format!(
                                     "Unsupported operation type for comparison: {}",
                                     name
                                 ));
-                                panic!();
                             }
                         },
                         _ => {
                             self.error("Unexpected operator token");
-                            panic!();
                         }
                     }
                 }
                 _ => {
                     self.error("Unsupported operands types for comparison");
-                    panic!();
                 }
             },
             Value::Bool(op1) => match op2 {
                 Value::Object(_) => {
                     let op2 = self.eval_node(&op2.clone());
-                    self.comp(&vec![Value::Bool(op1.clone()), operation.clone(), op2])
+                    return self.comp(&vec![Value::Bool(op1.clone()), operation.clone(), op2]);
                 }
                 Value::Bool(op2) => match operation {
                     Value::String(operation) => match operation.as_str() {
-                        "==" => json!(op1 == op2),
-                        "!=" => json!(op1 != op2),
-                        ">" => json!(op1 > op2),
-                        "<" => json!(op1 < op2),
-                        ">=" => json!(op1 >= op2),
-                        "<=" => json!(op1 <= op2),
-                        "&&" => json!(*op1 && *op2),
-                        "||" => json!(*op1 || *op2),
+                        "==" => return json!(op1 == op2),
+                        "!=" => return json!(op1 != op2),
+                        ">" => return json!(op1 > op2),
+                        "<" => return json!(op1 < op2),
+                        ">=" => return json!(op1 >= op2),
+                        "<=" => return json!(op1 <= op2),
+                        "&&" => return json!(*op1 && *op2),
+                        "||" => return json!(*op1 || *op2),
                         name => {
                             self.error(&format!(
                                 "Unsupported operation type for comparison: {}",
                                 name
                             ));
-                            panic!();
                         }
                     },
                     _ => {
                         self.error("Unexpected operator token");
-                        panic!();
                     }
                 },
                 _ => {
                     self.error("Unsupported operands types for comparison");
-                    panic!();
                 }
             },
             _ => match op2 {
                 Value::Object(_) => {
                     let op2 = self.eval_node(&op2.clone());
-                    self.comp(&vec![op1.clone(), operation.clone(), op2])
+                    return self.comp(&vec![op1.clone(), operation.clone(), op2]);
                 }
 
                 _ => match operation {
                     Value::String(operation) => match operation.as_str() {
-                        "==" => json!(op1 == op2),
-                        "!=" => json!(op1 != op2),
+                        "==" => return json!(op1 == op2),
+                        "!=" => return json!(op1 != op2),
                         name => {
                             self.error(&format!(
                                 "Unsupported operation type for comparison: {}",
                                 name
                             ));
-                            panic!();
                         }
                     },
                     _ => {
                         self.error("Unexpected operator token");
-                        panic!();
                     }
                 },
             },
         }
+        Value::Null
     }
 
     fn print(&mut self, args: &Vec<Value>, ln: bool) {
