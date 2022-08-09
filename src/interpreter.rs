@@ -10,6 +10,7 @@ pub struct Interpreter {
     vars: HashMap<String, Var>,
     pos: usize,
     scope: usize,
+    scopes: Vec<Vec<String>>,
 }
 
 impl Interpreter {
@@ -19,6 +20,7 @@ impl Interpreter {
             vars: HashMap::new(),
             pos: 1,
             scope: 0,
+            scopes: Vec::new(),
         }
     }
 
@@ -34,6 +36,7 @@ impl Interpreter {
                 .expect("The program must be an array of commands")
         });
 
+        self.scopes.push(Vec::new());
         for command in arr {
             self.eval_node(command);
             self.pos += 1;
@@ -302,6 +305,7 @@ impl Interpreter {
 
     fn run_nodes(&mut self, arr: &Vec<Value>) -> String {
         self.scope += 1;
+        self.scopes.push(Vec::new());
         for command in arr {
             let to_do = self.eval_node(command);
             match to_do {
@@ -315,12 +319,11 @@ impl Interpreter {
     }
 
     fn delete_last_scope(&mut self) {
-        let vars = self.vars.clone().into_iter();
-        for (k, v) in vars {
-            if v.scope == self.scope {
-                self.delete(&k);
-            }
+        let vars = self.scopes[self.scope].clone();
+        for name in vars {
+            self.delete(&name);
         }
+        self.scopes.remove(self.scope);
     }
 
     fn define(&mut self, vars: &Map<String, Value>) {
@@ -330,21 +333,23 @@ impl Interpreter {
                     Value::Object(_) => {
                         let value = self.eval_node(value);
                         self.vars.insert(
-                            name.to_string(),
+                            name.clone(),
                             Var {
                                 scope: self.scope,
                                 body: value,
                             },
                         );
+                        self.scopes[self.scope].push(name.clone())
                     }
                     _ => {
                         self.vars.insert(
-                            name.to_string(),
+                            name.clone(),
                             Var {
                                 scope: self.scope,
                                 body: value.clone(),
                             },
                         );
+                        self.scopes[self.scope].push(name.clone())
                     }
                 }
             } else {
