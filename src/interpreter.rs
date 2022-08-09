@@ -129,7 +129,7 @@ impl Interpreter {
                         },
                         "delete" => match value {
                             Value::String(value) => {
-                                self.delete(value);
+                                self.delete(value, true);
                             }
                             _ => {
                                 self.error("Unsupported data type for the `delete` argument, must be a string");
@@ -321,7 +321,7 @@ impl Interpreter {
     fn delete_last_scope(&mut self) {
         let vars = self.scopes[self.scope].clone();
         for name in vars {
-            self.delete(&name);
+            self.delete(&name, false);
         }
         self.scopes.remove(self.scope);
     }
@@ -359,15 +359,17 @@ impl Interpreter {
         }
     }
 
-    fn delete(&mut self, var_name: &String) {
+    fn delete(&mut self, var_name: &String, panic: bool) {
         if self.var_exists(var_name) {
             self.vars.remove(var_name);
         } else {
-            self.error(&format!(
-                "The variable {} does not exist and cannot be deleted",
-                var_name
-            ));
-            panic!();
+            if panic {
+                self.error(&format!(
+                    "The variable {} does not exist and cannot be deleted",
+                    var_name
+                ));
+                panic!();
+            }
         }
     }
 
