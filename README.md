@@ -1,5 +1,7 @@
 ![onlang logo](static/logos/OnLang-transparent.png)
 
+![Crates.io](https://img.shields.io/crates/v/onlang?style=flat-square)
+
 # You may have questions
 
 ONLang - Object Notation Language (js`ON`)
