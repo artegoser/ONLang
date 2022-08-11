@@ -1,5 +1,3 @@
-#![feature(box_syntax, panic_info_message)]
-
 use clap::Parser;
 use std::fs;
 use std::time::Instant;
