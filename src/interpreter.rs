@@ -14,8 +14,8 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new(input: String) -> Interpreter {
-        Interpreter {
+    pub fn new(input: String) -> Self {
+        Self {
             input,
             vars: HashMap::new(),
             pos: 1,
