@@ -19,8 +19,8 @@ fn main() {
         eprint!(
             "{msg}",
             msg = match info.payload().downcast_ref::<String>() {
-                None => "Program panicked without a message!".to_owned(),
-                Some(x) => x.to_string(),
+                None => "Program panicked without a message!",
+                Some(x) => &x,
             }
         );
     }));
