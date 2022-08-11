@@ -20,7 +20,7 @@ fn main() {
             "{msg}",
             msg = match info.payload().downcast_ref::<String>() {
                 None => "Program panicked without a message!",
-                Some(x) => &x,
+                Some(x) => x,
             }
         );
     }));
