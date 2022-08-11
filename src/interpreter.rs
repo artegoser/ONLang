@@ -219,8 +219,10 @@ impl Interpreter {
     fn input(&self, value: &String) -> Value {
         let mut input = String::new();
         print!("{}", value);
-        io::stdout().flush().unwrap_or_default();
-        io::stdin().read_line(&mut input).unwrap_or_default();
+        io::stdout().flush().expect("Couldn't flush Stdout");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Couldn't read from Stdin");
         Value::String(input.trim_end().to_string())
     }
 
@@ -625,24 +627,22 @@ impl Interpreter {
         std::process::exit(1);
     }
     fn unk_token(&self, name: &str) {
-        println!(
+        panic!(
             "\n{} {} | {} {}",
             "Unexpected token name:".red(),
             name.bold().black(),
             "pos:".green(),
             self.pos
         );
-        std::process::exit(1);
     }
 
     fn error(&self, name: &str) {
-        println!(
+        panic!(
             "\n{} {} | {} {}",
             "Error:".red(),
             name.bold().black(),
             "pos:".green(),
             self.pos
         );
-        std::process::exit(1);
     }
 }

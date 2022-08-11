@@ -15,8 +15,17 @@ mod interpreter;
 use interpreter::Interpreter;
 
 fn main() {
-    let start = Instant::now();
+    std::panic::set_hook(Box::new(|info| {
+        eprint!(
+            "{msg}",
+            msg = match info.payload().downcast_ref::<String>() {
+                None => "Program panicked without a message!".to_owned(),
+                Some(x) => x.to_string(),
+            }
+        );
+    }));
 
+    let start = Instant::now();
     let args = Args::parse();
     if args.verbose == true {
         println!("Running: {}\n", args.file);
