@@ -1,3 +1,5 @@
+#![feature(box_syntax, panic_info_message)]
+
 use clap::Parser;
 use std::fs;
 use std::time::Instant;
@@ -15,6 +17,15 @@ mod interpreter;
 use interpreter::Interpreter;
 
 fn main() {
+    std::panic::set_hook(
+        box |info| {
+            eprint!("{msg}", msg = match info.message() {
+                None => "Program panicked!".to_owned(),
+                Some(x) => x.to_string()
+            });
+        }
+    );
+    
     let start = Instant::now();
 
     let args = Args::parse();

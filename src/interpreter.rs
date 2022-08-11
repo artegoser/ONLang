@@ -14,8 +14,8 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new(input: String) -> Interpreter {
-        Interpreter {
+    pub fn new(input: String) -> Self {
+        Self {
             input,
             vars: HashMap::new(),
             pos: 1,
@@ -219,8 +219,8 @@ impl Interpreter {
     fn input(&self, value: &String) -> Value {
         let mut input = String::new();
         print!("{}", value);
-        io::stdout().flush().unwrap_or_default();
-        io::stdin().read_line(&mut input).unwrap_or_default();
+        io::stdout().flush().expect("Couldn't flush Stdout");
+        io::stdin().read_line(&mut input).expect("Couldn't read from Stdin");
         Value::String(input.trim_end().to_string())
     }
 
