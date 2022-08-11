@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 use clap::Parser;
 use std::fs;
 use std::time::Instant;
@@ -18,12 +16,12 @@ use interpreter::Interpreter;
 
 fn main() {
     std::panic::set_hook(
-        box |info| {
+        Box::new(|info| {
             eprint!("{msg}", msg = match info.message() {
                 None => "Program panicked!".to_owned(),
                 Some(x) => x.to_string()
             });
-        }
+        })
     );
     
     let start = Instant::now();
