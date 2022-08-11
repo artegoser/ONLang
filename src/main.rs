@@ -1,3 +1,5 @@
+#![feature(box_syntax)]
+
 use clap::Parser;
 use std::fs;
 use std::time::Instant;
