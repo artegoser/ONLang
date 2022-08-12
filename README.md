@@ -1,6 +1,6 @@
 ![onlang logo](static/logos/OnLang-transparent.png)
 
-![Crates.io](https://img.shields.io/crates/v/onlang?style=flat-square)
+[![Crates.io](https://img.shields.io/crates/v/onlang?style=flat-square)](https://crates.io/crates/onlang)
 
 # You may have questions
 
