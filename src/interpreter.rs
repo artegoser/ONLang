@@ -175,6 +175,14 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `scope` argument, must be an array");
                             }
                         },
+                        "obj" => match value {
+                            Value::Object(value) => {
+                                return self.calc_obj(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `obj` argument, must be an array");
+                            }
+                        },
                         name => {
                             self.unk_token(&name);
                         }
@@ -205,6 +213,17 @@ impl Interpreter {
             }
         }
         return Value::Null;
+    }
+
+    fn calc_obj(&mut self, value: &Map<String, Value>) -> Value {
+        let result: Value = value
+            .into_iter()
+            .map(|(k, v)| match v {
+                Value::Object(_) => (k.clone(), self.eval_node(v)),
+                _ => (k.clone(), v.clone()),
+            })
+            .collect();
+        result
     }
 
     fn sleep(&self, value: &serde_json::Number) {
