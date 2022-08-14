@@ -7,8 +7,8 @@
 - [ ] methods for arrays
 - [ ] methods for strings
 - [ ] methods for objects
-- [ ] writing objects to a variable
-- [x] yaml support?
+- [x] writing objects to a variable
+- [x] yaml support
 - [ ] command execution function
 - [ ] function for random
 - [x] delete variable
@@ -16,6 +16,7 @@
 - [ ] checking variable type
 - [x] checking for the existence of a variable
 - [x] create scopes without if, else, loop
-- [ ] calculate values in arrays
+- [x] calculate values in arrays
+- [x] References for variables in variables
 
 and something else

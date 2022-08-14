@@ -90,6 +90,34 @@ works only with numbers (and variables with number type)
       calculated: { calc: [{ var: "num" }, "*", 4] }, //result 8
     },
   },
+
+  {
+    let: {
+      referenceVar: { ref: "calculated" },
+    },
+    //creates a reference variable, when the "calculated"
+    // is changed, "referenceVar" will also be changed, in the
+    // future it will be possible to change "referenceVar"
+    // and the "calculated" will be changed
+  },
+
+  {
+    let: {
+      array: { arr: [{ var: "num" }, 4] }, //create calculated array result [2, 4]
+    },
+  },
+
+  {
+    let: {
+      objVar: { obj: { var: "num" } }, //create object (hashmap) variable result {var: "num"}
+    },
+  },
+
+  {
+    let: {
+      wrongObjVar: { var: "num" }, //result 2
+    },
+  },
 ]
 ```
 

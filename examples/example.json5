@@ -132,6 +132,21 @@
       str: "A",
       num: 2,
       arr: ["Array", "in", "variable"],
+      obj: {
+        obj: {
+          arr: ["i'm array", "!"],
+          string: "I'm string!",
+          calculated: { calc: [2, "*", 2] },
+        },
+      },
+    },
+  },
+
+  {
+    let: {
+      calcArr: {
+        arr: ["Some str", { var: "num" }],
+      },
     },
   },
 
@@ -142,15 +157,19 @@
   },
 
   [
-    "Created 4 variables with values:\n",
+    "Created 6 variables with values:\n",
     "str = ",
     { var: "str" },
     "\nnum = ",
     { var: "num" },
     "\narr = ",
     { var: "arr" },
+    "\nobj = ",
+    { toString: { var: "obj" } },
     "\ncalculated (num * 4) = ",
     { var: "calculated" },
+    '\ncalculated array ["Some str", num] = ',
+    { var: "calcArr" },
   ],
 
   "Execute calculated = calculated + 1",
@@ -175,7 +194,7 @@
         loop: [
           {
             if: {
-              condition: { comp: [{ var: "num" }, ">=", 100000] },
+              condition: { comp: [{ var: "num" }, ">=", 10000] },
               body: ["break"],
             },
           },
@@ -204,7 +223,7 @@
       },
       {
         if: {
-          condition: { comp: [{ var: "calculated" }, ">=", 100000] },
+          condition: { comp: [{ var: "calculated" }, ">=", 10000] },
           body: ["\n", "break"],
         },
       },
@@ -213,17 +232,17 @@
 
   {
     if: {
-      condition: { comp: [{ var: "calculated" }, ">=", 99999] },
-      body: [["сalculated is >= ", 99999]],
-      else: [["сalculated is < ", 99999]],
+      condition: { comp: [{ var: "calculated" }, ">=", 9999] },
+      body: [["сalculated is >= ", 9999]],
+      else: [["сalculated is < ", 9999]],
     },
   },
 
   {
     if: {
-      condition: { comp: [{ var: "calculated" }, ">", 100000] },
-      body: [["сalculated is > ", 100000]],
-      else: [["сalculated is <= ", 100000]],
+      condition: { comp: [{ var: "calculated" }, ">", 10000] },
+      body: [["сalculated is > ", 10000]],
+      else: [["сalculated is <= ", 10000]],
     },
   },
 
@@ -262,5 +281,25 @@
       name: { input: "Your name: " },
     },
   },
-  { print: ["Bye, ", { var: "name" }, "!"] },
+  ["Hey, ", { var: "name" }, "!"],
+
+  "Check a var references",
+  '\nCreate variable refToName with reference variable "name"',
+  {
+    let: {
+      refToName: { ref: "name" },
+    },
+  },
+
+  ["refToName = ", { var: "refToName" }],
+
+  "Try assign name with new value",
+  {
+    assign: {
+      name: { input: "Any name: " },
+    },
+  },
+  "",
+  ["name = ", { var: "name" }],
+  ["refToName = ", { var: "refToName" }],
 ]
