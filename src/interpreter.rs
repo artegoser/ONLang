@@ -191,6 +191,13 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `arr` argument, must be an array");
                             }
                         },
+                        "toString" => {
+                            return serde_json::Value::String(
+                                serde_json::to_string_pretty(&self.eval_node(value))
+                                    .expect("Some error"),
+                            )
+                        }
+
                         "obj" => match value {
                             Value::Object(value) => {
                                 return self.calc_obj(value);
