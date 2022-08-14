@@ -119,6 +119,14 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `var` argument, must be a string");
                             }
                         },
+                        "ref" => match value {
+                            Value::String(value) => {
+                                return self.variable_reference(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `ref` argument, must be a string");
+                            }
+                        },
                         "isExist" => match value {
                             Value::String(value) => {
                                 return Value::Bool(self.var_exists(value));
@@ -435,6 +443,18 @@ impl Interpreter {
             Some(_) => true,
             None => false,
         }
+    }
+
+    fn variable_reference(&mut self, name: &String) -> Value {
+        if self.var_exists(name) {
+            return json!({ "var": name });
+        } else {
+            self.error(&format!(
+                "The variable {} does not exist, the reference is invalid",
+                name
+            ));
+        }
+        Value::Null
     }
 
     fn calc(&mut self, value: &Vec<Value>) -> Value {
