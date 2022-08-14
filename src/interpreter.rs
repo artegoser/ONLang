@@ -183,6 +183,14 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `scope` argument, must be an array");
                             }
                         },
+                        "arr" => match value {
+                            Value::Array(value) => {
+                                return self.calc_arr(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `arr` argument, must be an array");
+                            }
+                        },
                         "obj" => match value {
                             Value::Object(value) => {
                                 return self.calc_obj(value);
@@ -221,6 +229,18 @@ impl Interpreter {
             }
         }
         return Value::Null;
+    }
+
+    fn calc_arr(&mut self, value: &Vec<Value>) -> Value {
+        Value::Array(
+            value
+                .into_iter()
+                .map(|val| match val {
+                    Value::Object(_) => self.eval_node(val),
+                    _ => val.clone(),
+                })
+                .collect(),
+        )
     }
 
     fn calc_obj(&mut self, value: &Map<String, Value>) -> Value {
