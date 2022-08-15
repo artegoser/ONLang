@@ -290,9 +290,10 @@
     },
   },
 
+  "fn sum(first, second){ return first+second};",
   "Run function `sum`",
 
-  ["fn sum(first, second){ return first+second}; sum(2,2) = ", { sum: [2, 2] }],
+  ["sum(2, 2) = ", { sum: [2, 2] }],
 
   "\nInput a var",
   {

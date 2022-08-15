@@ -15,15 +15,16 @@ mod interpreter;
 use interpreter::Interpreter;
 
 fn main() {
-    // std::panic::set_hook(Box::new(|info| {
-    //     eprint!(
-    //         "{msg}",
-    //         msg = match info.payload().downcast_ref::<String>() {
-    //             None => "Program panicked without a message!",
-    //             Some(x) => x,
-    //         }
-    //     );
-    // }));
+    #[cfg(not(debug_assertions))]
+    std::panic::set_hook(Box::new(|info| {
+        eprint!(
+            "{msg}",
+            msg = match info.payload().downcast_ref::<String>() {
+                None => "Program panicked without a message!",
+                Some(x) => x,
+            }
+        );
+    }));
 
     let start = Instant::now();
     let args = Args::parse();
