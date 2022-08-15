@@ -275,6 +275,25 @@
   "After scope",
   ['isExist("scoped"): ', { isExist: "scoped" }],
 
+  "Creating function `sum`",
+  {
+    fn: {
+      name: "sum",
+      args: ["first", "second"],
+      body: [
+        {
+          return: {
+            calc: [{ var: "sum.first" }, "+", { var: "sum.second" }],
+          },
+        },
+      ],
+    },
+  },
+
+  "Run function `sum`",
+
+  ["fn sum(first, second){ return first+second}; sum(2,2) = ", { sum: [2, 2] }],
+
   "\nInput a var",
   {
     let: {

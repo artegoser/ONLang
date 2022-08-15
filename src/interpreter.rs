@@ -113,7 +113,7 @@ impl Interpreter {
 
                         "var" => match value {
                             Value::String(value) => {
-                                return self.get_var(value);
+                                return self.get_var(value).body.clone();
                             }
                             _ => {
                                 self.error("Unsupported data type for the `var` argument, must be a string");
@@ -167,6 +167,14 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `if` argument, must be an object");
                             }
                         },
+                        "fn" => match value {
+                            Value::Object(value) => {
+                                self.define_fn(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `fn` argument, must be an object");
+                            }
+                        },
                         "loop" => match value {
                             Value::Array(value) => {
                                 return self.loop_cycle(value);
@@ -206,9 +214,16 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `obj` argument, must be an array");
                             }
                         },
-                        name => {
-                            self.unk_token(&name);
-                        }
+
+                        "return" => return json!({ "return": value }),
+                        name => match value {
+                            Value::Array(value) => {
+                                return self.run_fn(name.to_string(), value);
+                            }
+                            _ => {
+                                self.unk_token(&name);
+                            }
+                        },
                     }
                 }
             }
@@ -231,7 +246,8 @@ impl Interpreter {
             Value::Array(command) => {
                 self.print(command, true);
             }
-            _ => {
+            val => {
+                println!("{}", serde_json::to_string_pretty(val).unwrap());
                 self.error("Unsupported data type for the command");
             }
         }
@@ -280,6 +296,86 @@ impl Interpreter {
         Value::String(input.trim_end().to_string())
     }
 
+    fn run_fn(&mut self, name: String, args: &Vec<Value>) -> Value {
+        let function = self.get_var(&name);
+        match function.var_type {
+            VarTypes::Variable => {
+                self.error(&format!("`{}` not a function", name));
+            }
+            VarTypes::Function => {
+                let function = function.body.clone();
+                let real_len = args.len();
+                let func_args = function.get("args").unwrap().as_array().unwrap();
+                if real_len == func_args.len() {
+                    self.enter_the_scope();
+                    for i in 0..real_len {
+                        let argname = &func_args[i];
+                        match argname {
+                            Value::String(argname) => {
+                                self.create_var(&format!("{}.{}", name, argname), &args[i], false);
+                            }
+                            _ => self.error("Argument name must be a string"),
+                        }
+                    }
+                    let name = self.run_nodes(function.get("body").unwrap().as_array().unwrap());
+                    match name {
+                        Value::Object(name) => {
+                            let result = self.eval_node(&name.get("return").unwrap());
+                            self.exit_from_scope();
+                            return result;
+                        }
+                        _ => return Value::Null,
+                    }
+                } else {
+                    self.error(&format!(
+                        "`{}` must have {} arguments, but {} is specified",
+                        name,
+                        func_args.len(),
+                        real_len
+                    ));
+                }
+            }
+        }
+        self.exit_from_scope();
+        Value::Null
+    }
+    fn define_fn(&mut self, value: &Map<String, Value>) {
+        let name = &value.get("name");
+        let body = &value.get("body");
+        let args = &value.get("args");
+
+        match name {
+            Some(name) => match name {
+                Value::String(name) => match body {
+                    Some(body) => match body {
+                        Value::Array(body) => match args {
+                            Some(args) => match args {
+                                Value::Array(args) => {
+                                    // let args: Vec<String> = args.iter().map(|val| format!("{}.{}", name, val)).collect();
+                                    self.vars.insert(
+                                        name.clone(),
+                                        Var {
+                                            scope: self.scope,
+                                            body: json!({"args":args, "body":body}),
+                                            var_type: VarTypes::Function,
+                                        },
+                                    );
+                                }
+                                _ => self.error("Arguments must be an array of strings"),
+                            },
+                            None => self
+                                .error("Each function must have an array of arguments or an empty array instead of them"),
+                        },
+                        _ => self.error("Body must be an array of commands"),
+                    },
+                    None => self.error("Each function must have a body"),
+                },
+                _ => self.error("Name must be a string"),
+            },
+            None => self.error("Function must have a name"),
+        }
+    }
+
     fn if_node(&mut self, value: &Map<String, Value>) -> Value {
         let condition = self.eval_node(&value["condition"]);
         let nodes = &value.get("body");
@@ -292,43 +388,23 @@ impl Interpreter {
                         Value::Array(else_nodes) => {
                             if condition == true {
                                 let name = self.run_nodes(nodes);
-                                if name == "break" {
-                                    return Value::String("break".to_string());
-                                }
-                                if name == "continue" {
-                                    return Value::String("continue".to_string());
-                                }
+                                return name;
                             } else {
                                 let name = self.run_nodes(else_nodes);
-                                if name == "break" {
-                                    return Value::String("break".to_string());
-                                }
-                                if name == "continue" {
-                                    return Value::String("continue".to_string());
-                                }
+                                return name;
                             };
                         }
                         _ => {
                             if condition == true {
                                 let name = self.run_nodes(nodes);
-                                if name == "break" {
-                                    return Value::String("break".to_string());
-                                }
-                                if name == "continue" {
-                                    return Value::String("continue".to_string());
-                                }
+                                return name;
                             }
                         }
                     },
                     None => {
                         if condition == true {
                             let name = self.run_nodes(nodes);
-                            if name == "break" {
-                                return Value::String("break".to_string());
-                            }
-                            if name == "continue" {
-                                return Value::String("continue".to_string());
-                            }
+                            return name;
                         }
                     }
                 },
@@ -344,28 +420,54 @@ impl Interpreter {
     fn loop_cycle(&mut self, value: &Vec<Value>) -> Value {
         loop {
             let name = self.run_nodes(value);
-            if name == "break" {
-                break Value::Null;
-            }
-            if name == "continue" {
-                continue;
+            match name {
+                Value::String(name) => {
+                    if name == "break" {
+                        break Value::Null;
+                    } else if name == "continue" {
+                        continue;
+                    }
+                }
+                Value::Object(_) => {
+                    return name;
+                }
+                _ => {}
             }
         }
     }
 
-    fn run_nodes(&mut self, arr: &Vec<Value>) -> String {
-        self.scope += 1;
-        self.scopes.push(Vec::new());
+    fn run_nodes(&mut self, arr: &Vec<Value>) -> Value {
+        self.enter_the_scope();
         for command in arr {
             let to_do = self.eval_node(command);
             match to_do {
-                Value::String(name) => return name,
+                Value::String(name) => {
+                    if name == "break" || name == "continue" {
+                        return Value::String(name);
+                    }
+                }
+                Value::Object(name) => {
+                    let check = name.get("return");
+                    match check {
+                        Some(_) => return Value::Object(name),
+                        None => {}
+                    }
+                }
                 _ => {}
             }
         }
+        self.exit_from_scope();
+        Value::String("end".to_string())
+    }
+
+    fn enter_the_scope(&mut self) {
+        self.scope += 1;
+        self.scopes.push(Vec::new());
+    }
+
+    fn exit_from_scope(&mut self) {
         self.delete_last_scope();
         self.scope -= 1;
-        "end".to_string()
     }
 
     fn delete_last_scope(&mut self) {
@@ -378,36 +480,44 @@ impl Interpreter {
 
     fn define(&mut self, vars: &Map<String, Value>) {
         for (name, value) in vars {
-            if !self.var_exists(&name) {
-                match value {
-                    Value::Object(_) => {
-                        let value = self.eval_node(value);
-                        self.vars.insert(
-                            name.clone(),
-                            Var {
-                                scope: self.scope,
-                                body: value,
-                            },
-                        );
-                        self.scopes[self.scope].push(name.clone())
-                    }
-                    _ => {
-                        self.vars.insert(
-                            name.clone(),
-                            Var {
-                                scope: self.scope,
-                                body: value.clone(),
-                            },
-                        );
-                        self.scopes[self.scope].push(name.clone())
-                    }
+            self.create_var(name, value, true);
+        }
+    }
+    fn create_var(&mut self, name: &String, value: &Value, panic: bool) {
+        if !self.var_exists(&name) {
+            match value {
+                Value::Object(_) => {
+                    let value = self.eval_node(value);
+                    self.vars.insert(
+                        name.clone(),
+                        Var {
+                            scope: self.scope,
+                            body: value,
+                            var_type: VarTypes::Variable,
+                        },
+                    );
+                    self.scopes[self.scope].push(name.clone())
                 }
-            } else {
+                _ => {
+                    self.vars.insert(
+                        name.clone(),
+                        Var {
+                            scope: self.scope,
+                            body: value.clone(),
+                            var_type: VarTypes::Variable,
+                        },
+                    );
+                    self.scopes[self.scope].push(name.clone())
+                }
+            }
+        } else {
+            if panic {
                 self.error(&format!("The variable {} already exist, use assign", name));
+            } else {
+                self.assign_var(name, value);
             }
         }
     }
-
     fn delete(&mut self, var_name: &String, panic: bool) {
         if self.var_exists(var_name) {
             self.vars.remove(var_name);
@@ -421,15 +531,15 @@ impl Interpreter {
         }
     }
 
-    fn get_var(&mut self, var_name: &String) -> Value {
+    fn get_var(&mut self, var_name: &String) -> &Var {
         let var = self.vars.get(var_name);
         match var {
-            Some(var) => return var.body.clone(),
+            Some(var) => return var,
             None => {
                 self.error(&format!("The variable {} does not exist", var_name));
+                panic!();
             }
         }
-        Value::Null
     }
 
     fn get_var_scope(&mut self, var_name: &String) -> usize {
@@ -445,26 +555,35 @@ impl Interpreter {
 
     fn assign(&mut self, vars: &Map<String, Value>) {
         for (name, value) in vars {
-            let scope = self.get_var_scope(name);
-            match value {
-                Value::Object(_) => {
-                    let value = self.eval_node(value);
-                    self.vars
-                        .insert(name.to_string(), Var { scope, body: value });
-                }
-                _ => {
-                    self.vars.insert(
-                        name.to_string(),
-                        Var {
-                            scope,
-                            body: value.clone(),
-                        },
-                    );
-                }
+            self.assign_var(name, value);
+        }
+    }
+    fn assign_var(&mut self, name: &String, value: &Value) {
+        let scope = self.get_var_scope(name);
+        match value {
+            Value::Object(_) => {
+                let value = self.eval_node(value);
+                self.vars.insert(
+                    name.to_string(),
+                    Var {
+                        scope,
+                        body: value,
+                        var_type: VarTypes::Variable,
+                    },
+                );
+            }
+            _ => {
+                self.vars.insert(
+                    name.to_string(),
+                    Var {
+                        scope,
+                        body: value.clone(),
+                        var_type: VarTypes::Variable,
+                    },
+                );
             }
         }
     }
-
     fn var_exists(&self, name: &String) -> bool {
         match self.vars.get(name) {
             Some(_) => true,
