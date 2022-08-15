@@ -307,7 +307,6 @@ impl Interpreter {
                 let real_len = args.len();
                 let func_args = function.get("args").unwrap().as_array().unwrap();
                 if real_len == func_args.len() {
-                    self.enter_the_scope();
                     for i in 0..real_len {
                         let argname = &func_args[i];
                         match argname {
@@ -317,12 +316,11 @@ impl Interpreter {
                             _ => self.error("Argument name must be a string"),
                         }
                     }
+
                     let name = self.run_nodes(function.get("body").unwrap().as_array().unwrap());
                     match name {
                         Value::Object(name) => {
-                            let result = self.eval_node(&name.get("return").unwrap());
-                            self.exit_from_scope();
-                            return result;
+                            return name.get("return").unwrap().clone();
                         }
                         _ => return Value::Null,
                     }
@@ -336,7 +334,6 @@ impl Interpreter {
                 }
             }
         }
-        self.exit_from_scope();
         Value::Null
     }
     fn define_fn(&mut self, value: &Map<String, Value>) {
@@ -377,7 +374,11 @@ impl Interpreter {
     }
 
     fn if_node(&mut self, value: &Map<String, Value>) -> Value {
-        let condition = self.eval_node(&value["condition"]);
+        let condition = self.eval_node(
+            &value
+                .get("condition")
+                .expect("`if` must have a `condition` argument"),
+        );
         let nodes = &value.get("body");
         let else_nodes = &value.get("else");
 
@@ -411,7 +412,7 @@ impl Interpreter {
                 _ => {}
             },
             None => {
-                self.error("if must have a body");
+                self.error("`if` must have a body");
             }
         }
         Value::Null
@@ -443,13 +444,18 @@ impl Interpreter {
             match to_do {
                 Value::String(name) => {
                     if name == "break" || name == "continue" {
+                        self.exit_from_scope();
                         return Value::String(name);
                     }
                 }
                 Value::Object(name) => {
                     let check = name.get("return");
                     match check {
-                        Some(_) => return Value::Object(name),
+                        Some(check) => {
+                            let result = json!({"return": self.eval_node(check)});
+                            self.exit_from_scope();
+                            return result;
+                        }
                         None => {}
                     }
                 }
