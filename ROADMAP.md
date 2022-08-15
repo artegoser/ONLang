@@ -1,6 +1,6 @@
 # TODO CONCEPTS
 
-- [ ] Functions
+- [x] Functions
 - [ ] imports
 - [x] scopes of visibility
 

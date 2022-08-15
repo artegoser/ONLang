@@ -188,3 +188,29 @@ works only with numbers (and variables with number type)
   {scope:[..commands]}
 ]
 ```
+
+## Create functions
+
+```json5
+[
+  "Creating function `sum`",
+  {
+    fn: {
+      name: "sum",
+      args: ["first", "second"],
+      body: [
+        {
+          return: {
+            calc: [{ var: "sum.first" }, "+", { var: "sum.second" }],
+          },
+        },
+      ],
+    },
+  },
+
+  "fn sum(first, second){ return first+second};",
+  "Run function `sum`",
+
+  ["sum(2, 2) = ", { sum: [2, 2] }],
+]
+```
