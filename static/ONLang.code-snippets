@@ -1,0 +1,578 @@
+{
+  "ONlang boilerplate json5": {
+    "scope": "json5",
+    "prefix": ["onlang", "main"],
+    "body": [
+      "//meta:json",
+      "{",
+      "  main: [",
+      "    ${0:\"commands\"}",
+      "  ]",
+      "}"
+    ],
+    "description": "Create a standard boilerplate for onlang"
+  },
+  "ONlang boilerplate json": {
+    "scope": "json",
+    "prefix": ["onlang", "main"],
+    "body": ["{", "  \"main\": [", "    ${0:\"commands\"}", "  ]", "}"],
+    "description": "Create a standard boilerplate for onlang"
+  },
+  "ONlang boilerplate yaml": {
+    "scope": "yaml",
+    "prefix": ["onlang", "main"],
+    "body": ["main: ", "  - ${0:command}"],
+    "description": "Create a standard boilerplate for onlang"
+  },
+
+  "print json5": {
+    "scope": "json5",
+    "prefix": "print",
+    "body": ["{print: [${1:\"values\"}]},"],
+    "description": "Print output to console"
+  },
+  "print json": {
+    "scope": "json",
+    "prefix": "print",
+    "body": ["{\"print\": [${1:\"values\"}]}"],
+    "description": "Print output to console"
+  },
+  "print yaml": {
+    "scope": "yaml",
+    "prefix": "print",
+    "body": ["print:", "    - ${1:\"values\"}"],
+    "description": "Print output to console"
+  },
+
+  "println json5": {
+    "scope": "json5",
+    "prefix": "println",
+    "body": ["{println: [${1:\"values\"}]},"],
+    "description": "Println output to console"
+  },
+  "println json": {
+    "scope": "json",
+    "prefix": "println",
+    "body": ["{\"println\": [${1:\"values\"}]}"],
+    "description": "Println output to console"
+  },
+  "println yaml": {
+    "scope": "yaml",
+    "prefix": "println",
+    "body": ["println:", "    - ${1:\"values\"}"],
+    "description": "Println output to console"
+  },
+
+  "sleep json5": {
+    "scope": "json5",
+    "prefix": "sleep",
+    "body": ["{sleep: ${1:\"ms\"}},"],
+    "description": "Sleep thread in ms"
+  },
+  "sleep json": {
+    "scope": "json",
+    "prefix": "sleep",
+    "body": ["{\"sleep\": ${1:\"ms\"}}"],
+    "description": "Sleep thread in ms"
+  },
+  "sleep yaml": {
+    "scope": "yaml",
+    "prefix": "sleep",
+    "body": ["sleep: ${1:\"ms\"}"],
+    "description": "Sleep thread in ms"
+  },
+
+  "return json5": {
+    "scope": "json5",
+    "prefix": "return",
+    "body": ["{return: ${1:\"value\"}},"],
+    "description": "Return a value in function"
+  },
+  "return json": {
+    "scope": "json",
+    "prefix": "return",
+    "body": ["{\"return\": ${1:\"value\"}}"],
+    "description": "Return a value in function"
+  },
+  "return yaml": {
+    "scope": "yaml",
+    "prefix": "return",
+    "body": ["return: ${1:value}"],
+    "description": "Return a value in function"
+  },
+
+  "toString json5": {
+    "scope": "json5",
+    "prefix": "toString",
+    "body": ["{toString: ${1:\"value\"}},"],
+    "description": "Convert any value to string"
+  },
+  "toString json": {
+    "scope": "json",
+    "prefix": "toString",
+    "body": ["{\"toString\": ${1:\"value\"}}"],
+    "description": "Convert any value to string"
+  },
+  "toString yaml": {
+    "scope": "yaml",
+    "prefix": "toString",
+    "body": ["toString: ${1:value}"],
+    "description": "Convert any value to string"
+  },
+
+  "ErrExit json": {
+    "scope": "json, json5",
+    "prefix": "ErrExit",
+    "body": ["\"ErrExit\""],
+    "description": "Exit from programm with code 1"
+  },
+  "ErrExit yaml": {
+    "scope": "yaml",
+    "prefix": "ErrExit",
+    "body": ["ErrExit"],
+    "description": "Exit from programm with code 1"
+  },
+
+  "Exit json": {
+    "scope": "json, json5",
+    "prefix": "Exit",
+    "body": ["\"Exit\""],
+    "description": "Exit from programm with code 0"
+  },
+  "Exit yaml": {
+    "scope": "yaml",
+    "prefix": "Exit",
+    "body": ["Exit"],
+    "description": "Exit from programm with code 0"
+  },
+
+  "clear json": {
+    "scope": "json, json5",
+    "prefix": "clear",
+    "body": ["\"clear\""],
+    "description": "Clear console"
+  },
+  "clear yaml": {
+    "scope": "yaml",
+    "prefix": "clear",
+    "body": ["clear"],
+    "description": "Clear console"
+  },
+
+  "break json": {
+    "scope": "json, json5",
+    "prefix": "break",
+    "body": ["\"break\""],
+    "description": "Break loop"
+  },
+  "break yaml": {
+    "scope": "yaml",
+    "prefix": "break",
+    "body": ["break"],
+    "description": "Break loop"
+  },
+
+  "continue json": {
+    "scope": "json, json5",
+    "prefix": "continue",
+    "body": ["\"continue\""],
+    "description": "continue loop"
+  },
+  "continue yaml": {
+    "scope": "yaml",
+    "prefix": "continue",
+    "body": ["continue"],
+    "description": "continue loop"
+  },
+
+  "input json5": {
+    "scope": "json5",
+    "prefix": "input",
+    "body": ["{input: \"${1:placeholder}\"},"],
+    "description": "Input a value from stdin"
+  },
+  "input json": {
+    "scope": "json",
+    "prefix": "input",
+    "body": ["{\"input\": \"${1:placeholder}\"}"],
+    "description": "Input a value from stdin"
+  },
+  "input yaml": {
+    "scope": "yaml",
+    "prefix": "input",
+    "body": ["input: ${1:placeholder}"],
+    "description": "Input a value from stdin"
+  },
+
+  "let json5": {
+    "scope": "json5",
+    "prefix": "let",
+    "body": ["{", "let: {", "    ${1:name}: ${2:\"value\"}", "  }", "},"],
+    "description": "Define variable"
+  },
+  "let json": {
+    "scope": "json",
+    "prefix": "let",
+    "body": [
+      "{",
+      "\"let\": {",
+      "    \"${1:name}\": ${2:\"value\"}",
+      "  }",
+      "},"
+    ],
+    "description": "Define variable"
+  },
+  "let yaml": {
+    "scope": "yaml",
+    "prefix": "let",
+    "body": ["let:", "    ${1:name}: ${2:value}"],
+    "description": "Define variable"
+  },
+
+  "assign json5": {
+    "scope": "json5",
+    "prefix": "assign",
+    "body": ["{", "assign: {", "    ${1:name}: ${2:\"value\"}", "  }", "},"],
+    "description": "Assign variable"
+  },
+  "assign json": {
+    "scope": "json",
+    "prefix": "assign",
+    "body": [
+      "{",
+      "\"assign\": {",
+      "    \"${1:name}\": ${2:\"value\"}",
+      "  }",
+      "},"
+    ],
+    "description": "Assign variable"
+  },
+  "assign yaml": {
+    "scope": "yaml",
+    "prefix": "assign",
+    "body": ["assign:", "    ${1:name}: ${2:value}"],
+    "description": "Assign variable"
+  },
+
+  "var json5": {
+    "scope": "json5",
+    "prefix": "var",
+    "body": ["{ var: \"${1:name}\" }"],
+    "description": "Get variable value"
+  },
+  "var json": {
+    "scope": "json",
+    "prefix": "var",
+    "body": ["{ \"var\": \"${1:name}\" }"],
+    "description": "Get variable value"
+  },
+  "var yaml": {
+    "scope": "yaml",
+    "prefix": "var",
+    "body": ["var: ${1:name}"],
+    "description": "Get variable value"
+  },
+
+  "ref json5": {
+    "scope": "json5",
+    "prefix": "ref",
+    "body": ["{ ref: \"${1:name}\" }"],
+    "description": "Get variable reference"
+  },
+  "ref json": {
+    "scope": "json",
+    "prefix": "ref",
+    "body": ["{ \"ref\": \"${1:name}\" }"],
+    "description": "Get variable reference"
+  },
+  "ref yaml": {
+    "scope": "yaml",
+    "prefix": "ref",
+    "body": ["ref: ${1:name}"],
+    "description": "Get variable reference"
+  },
+
+  "isExist json5": {
+    "scope": "json5",
+    "prefix": "isExist",
+    "body": ["{ isExist: \"${1:name}\" }"],
+    "description": "Check existence of variable"
+  },
+  "isExist json": {
+    "scope": "json",
+    "prefix": "isExist",
+    "body": ["{ \"isExist\": \"${1:name}\" }"],
+    "description": "Check existence of variable"
+  },
+  "isExist yaml": {
+    "scope": "yaml",
+    "prefix": "isExist",
+    "body": ["isExist: ${1:name}"],
+    "description": "Check existence of variable"
+  },
+
+  "delete json5": {
+    "scope": "json5",
+    "prefix": "delete",
+    "body": ["{ delete: \"${1:name}\" }"],
+    "description": "Delete variable"
+  },
+  "delete json": {
+    "scope": "json",
+    "prefix": "delete",
+    "body": ["{ \"delete\": \"${1:name}\" }"],
+    "description": "Delete variable"
+  },
+  "delete yaml": {
+    "scope": "yaml",
+    "prefix": "delete",
+    "body": ["delete: ${1:name}"],
+    "description": "Delete variable"
+  },
+
+  "arr json5": {
+    "scope": "json5",
+    "prefix": "arr",
+    "body": ["{ arr: [${1:\"values\"}] }"],
+    "description": "Create array with computable values"
+  },
+  "arr json": {
+    "scope": "json",
+    "prefix": "arr",
+    "body": ["{ \"arr\": [${1:\"values\"}] }"],
+    "description": "Create array with computable values"
+  },
+  "arr yaml": {
+    "scope": "yaml",
+    "prefix": "arr",
+    "body": ["arr:", "  - ${1:values}"],
+    "description": "Create array with computable values"
+  },
+
+  "obj json5": {
+    "scope": "json5",
+    "prefix": "obj",
+    "body": ["{ obj: {${1:\"values\"}} }"],
+    "description": "Create object with computable values"
+  },
+  "obj json": {
+    "scope": "json",
+    "prefix": "obj",
+    "body": ["{ \"arr\": {${1:\"values\"}} }"],
+    "description": "Create object with computable values"
+  },
+  "obj yaml": {
+    "scope": "yaml",
+    "prefix": "obj",
+    "body": ["obj:", "  ${1:values}"],
+    "description": "Create object with computable values"
+  },
+
+  "calc json5": {
+    "scope": "json5",
+    "prefix": "calc",
+    "body": [
+      "{ calc: [${1:\"operand\"}, \"${2:operator}\", ${3:\"operand\"}] }"
+    ],
+    "description": "Calculate function"
+  },
+  "calc json": {
+    "scope": "json",
+    "prefix": "calc",
+    "body": [
+      "{ \"calc\": [${1:\"operand\"}, \"${2:operator}\", ${3:\"operand\"}] }"
+    ],
+    "description": "Calculate function"
+  },
+  "calc yaml": {
+    "scope": "yaml",
+    "prefix": "calc",
+    "body": ["calc: [${1:operand}, ${2:operator}, ${3:operand}]"],
+    "description": "Calculate function"
+  },
+
+  "comp json5": {
+    "scope": "json5",
+    "prefix": "comp",
+    "body": [
+      "{ comp: [${1:\"operand\"}, \"${2:operator}\", ${3:\"operand\"}] }"
+    ],
+    "description": "Comparison function"
+  },
+  "comp json": {
+    "scope": "json",
+    "prefix": "comp",
+    "body": [
+      "{ \"comp\": [${1:\"operand\"}, \"${2:operator}\", ${3:\"operand\"}] }"
+    ],
+    "description": "Comparison function"
+  },
+  "comp yaml": {
+    "scope": "yaml",
+    "prefix": "comp",
+    "body": ["comp: [${1:operand}, \"${2:operator}\", ${3:operand}]"],
+    "description": "Comparison function"
+  },
+
+  "loop json5": {
+    "scope": "json5",
+    "prefix": "loop",
+    "body": ["{ loop: [${0:\"commands\"}] }"],
+    "description": "Loop cycle"
+  },
+  "loop json": {
+    "scope": "json",
+    "prefix": "loop",
+    "body": ["{ \"loop\": [${0:\"commands\"}] }"],
+    "description": "Loop cycle"
+  },
+  "loop yaml": {
+    "scope": "yaml",
+    "prefix": "loop",
+    "body": ["loop: ", "  - ${0:commands}"],
+    "description": "Create scope"
+  },
+
+  "scope json5": {
+    "scope": "json5",
+    "prefix": "scope",
+    "body": ["{ scope: [${0:\"commands\"}] }"],
+    "description": "Create scope"
+  },
+  "scope json": {
+    "scope": "json",
+    "prefix": "scope",
+    "body": ["{ \"scope\": [${0:\"commands\"}] }"],
+    "description": "Create scope"
+  },
+  "scope yaml": {
+    "scope": "yaml",
+    "prefix": "scope",
+    "body": ["scope: ", "  - ${0:commands}"],
+    "description": "Create scope"
+  },
+
+  "if-body json5": {
+    "scope": "json5",
+    "prefix": "if-body",
+    "body": [
+      "{",
+      "  if: {",
+      "    condition: ${1:{ comp: [${2:\"operand\"}, \"${3:operator}\", ${4:\"operand\"}] }},",
+      "    body: [${0:\"commands\"}],",
+      "  }",
+      "},"
+    ],
+    "description": "Condition"
+  },
+  "if-body json": {
+    "scope": "json",
+    "prefix": "if-body",
+    "body": [
+      "{",
+      "  \"if\": {",
+      "    \"condition\": ${1:{ \"comp\": [${2:\"operand\"}, \"${3:operator}\", ${4:\"operand\"}] }},",
+      "    \"body\": [${0:\"commands\"}]",
+      "  }",
+      "}"
+    ],
+    "description": "Condition"
+  },
+  "if-body yaml": {
+    "scope": "yaml",
+    "prefix": "if-body",
+    "body": [
+      "if:",
+      "  condition:",
+      "    ${1:comp: [${2:operand}, \"${3:operator}\", ${4:operand}]}",
+      "  body:",
+      "    - ${0:commands}"
+    ],
+    "description": "Condition"
+  },
+
+  "if-body-else json5": {
+    "scope": "json5",
+    "prefix": "if-body-else",
+    "body": [
+      "{",
+      "  if: {",
+      "    condition: ${1:{ comp: [${2:\"operand\"}, \"${3:operator}\", ${4:\"operand\"}] }},",
+      "    body: [${5:\"commands\"}],",
+      "    else: [${0:\"commands\"}]",
+      "  }",
+      "},"
+    ],
+    "description": "Condition"
+  },
+  "if-body-else json": {
+    "scope": "json",
+    "prefix": "if-body-else",
+    "body": [
+      "{",
+      "  \"if\": {",
+      "    \"condition\": ${1:{ \"comp\": [${2:\"operand\"}, \"${3:operator}\", ${4:\"operand\"}] }},",
+      "    \"body\": [${5:\"commands\"}],",
+      "    \"else\": [${0:\"commands\"}]",
+      "  }",
+      "}"
+    ],
+    "description": "Condition"
+  },
+  "if-body-else yaml": {
+    "scope": "yaml",
+    "prefix": "if-body-else",
+    "body": [
+      "if:",
+      "  condition:",
+      "    ${1:comp: [${2:operand}, \"${3:operator}\", ${4:operand}]}",
+      "  body:",
+      "    - ${5:commands}",
+      "  else:",
+      "    - ${0:commands}"
+    ],
+    "description": "Condition"
+  },
+
+  "function json5": {
+    "scope": "json5",
+    "prefix": ["fn", "function", "def"],
+    "body": [
+      "{",
+      "  fn: {",
+      "    name: \"${1:name}\",",
+      "    args: [${2:\"arguments\"}],",
+      "    body: [${0:\"commands\"}]",
+      "  }",
+      "},"
+    ],
+    "description": "Define function"
+  },
+  "function json": {
+    "scope": "json",
+    "prefix": ["fn", "function", "def"],
+    "body": [
+      "{",
+      "  \"fn\": {",
+      "    \"name\": \"${1:name}\",",
+      "    \"args\": [${2:\"arguments\"}],",
+      "    \"body\": [${0:\"commands\"}]",
+      "  }",
+      "}"
+    ],
+    "description": "Define function"
+  },
+  "function yaml": {
+    "scope": "yaml",
+    "prefix": ["fn", "function", "def"],
+    "body": [
+      "fn:",
+      "  name: ${1:name}",
+      "  args:",
+      "    - ${2:argument}",
+      "  body:",
+      "    - ${0:commands}"
+    ],
+    "description": "Define function"
+  }
+}
