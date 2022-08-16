@@ -451,11 +451,17 @@ impl Interpreter {
                 Value::Object(name) => {
                     let check = name.get("return");
                     match check {
-                        Some(check) => {
-                            let result = json!({"return": self.eval_node(check)});
-                            self.exit_from_scope();
-                            return result;
-                        }
+                        Some(check) => match check {
+                            Value::Object(_) => {
+                                let result = json!({"return": self.eval_node(check)});
+                                self.exit_from_scope();
+                                return result;
+                            }
+                            _ => {
+                                self.exit_from_scope();
+                                return json!({"return": check.clone()});
+                            }
+                        },
                         None => {}
                     }
                 }
