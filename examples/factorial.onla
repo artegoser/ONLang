@@ -74,5 +74,4 @@
   //   "21! == 51 090 942 171 709 440 000: ",
   //   { _eq: [{ fact: [21] }, 51090942171709440000] },
   // ], some json and yaml troubles with number `51090942171709440000`
-  { calc: ["operand", "+", "operand"] }
 ]

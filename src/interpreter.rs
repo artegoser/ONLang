@@ -3,10 +3,13 @@ use colored::*;
 use json5;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
+use std::ffi::OsStr;
+use std::fs::File;
 use std::io::{self, Write};
-use std::{thread, time};
+use std::path::Path;
+use std::{fs, thread, time};
 pub struct Interpreter {
-    input: String,
+    commands: Vec<Value>,
     vars: HashMap<String, Var>,
     pos: usize,
     scope: usize,
@@ -14,32 +17,159 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new(input: String) -> Self {
-        Self {
-            input,
-            vars: HashMap::new(),
-            pos: 1,
-            scope: 0,
-            scopes: Vec::new(),
+    pub fn new(file_path: String) -> Self {
+        match Path::new(&file_path)
+            .extension()
+            .and_then(OsStr::to_str)
+            .expect("The file must have the extension (.yaml, .json, .json5, .onla or .conla)")
+        {
+            "yaml" => {
+                let file_input = fs::read_to_string(&file_path).expect("File reading error");
+                let obj: serde_json::Value =
+                    serde_yaml::from_str(&file_input).unwrap_or_else(|x| {
+                        match x.location() {
+                            Some(location) => {
+                                eprintln!(
+                                    "{file_path}:{}:{} --> {x}",
+                                    location.column(),
+                                    location.line()
+                                );
+                            }
+                            None => {
+                                eprintln!("{}", x);
+                            }
+                        }
+
+                        std::process::exit(1);
+                    });
+                let commands = obj.as_array().unwrap_or_else(|| {
+                    obj.get("main")
+                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                        .as_array()
+                        .expect("The program must be an array of commands")
+                });
+                Self {
+                    commands: commands.clone(),
+                    vars: HashMap::new(),
+                    pos: 1,
+                    scope: 0,
+                    scopes: Vec::new(),
+                }
+            }
+            "conla" => {
+                let file_input = File::open(file_path).expect("File reading error");
+                let obj: serde_json::Value = rmp_serde::from_read(file_input)
+                    .expect(".conla file (MessagePack) is invalid! ");
+                let commands = obj.as_array().unwrap_or_else(|| {
+                    obj.get("main")
+                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                        .as_array()
+                        .expect("The program must be an array of commands")
+                });
+                Self {
+                    commands: commands.clone(),
+                    vars: HashMap::new(),
+                    pos: 1,
+                    scope: 0,
+                    scopes: Vec::new(),
+                }
+            }
+            _ => {
+                let file_input = fs::read_to_string(&file_path).expect("File reading error");
+                let obj: serde_json::Value =
+                    json5::from_str::<Value>(&file_input).unwrap_or_else(|x| {
+                        eprintln!("{file_path}{x}");
+                        std::process::exit(1);
+                    });
+                let commands = obj.as_array().unwrap_or_else(|| {
+                    obj.get("main")
+                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                        .as_array()
+                        .expect("The program must be an array of commands")
+                });
+
+                Self {
+                    commands: commands.clone(),
+                    vars: HashMap::new(),
+                    pos: 1,
+                    scope: 0,
+                    scopes: Vec::new(),
+                }
+            }
         }
     }
 
-    pub fn run(&mut self) {
-        let obj: serde_json::Value = json5::from_str::<Value>(&self.input).unwrap_or_else(|_| {
-            serde_yaml::from_str(&self.input)
-                .expect("Your file format is invalid! (supported: json, json5 or yaml)")
-        });
-        let arr = obj.as_array().unwrap_or_else(|| {
-            obj.get("main")
-                .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
-                .as_array()
-                .expect("The program must be an array of commands")
-        });
+    pub fn compress(&mut self, output_path: String) {
+        let mut output = File::create(output_path).expect("Failed to create output file");
+        output
+            .write_all(
+                &rmp_serde::encode::to_vec(&self.commands)
+                    .expect("Error when compressing onlang to .conla"),
+            )
+            .expect("Error when writing to file");
+        println!("Compressed");
+    }
 
+    pub fn convert(&self, format: String, output_path: String) {
+        match format.as_str() {
+            "yaml" => {
+                self.convert_to_yaml(output_path);
+            }
+            "json" => {
+                self.convert_to_json(output_path);
+            }
+            "json5" => {
+                self.convert_to_json5(output_path);
+            }
+            _ => {
+                self.error("The conversion format is not supported");
+            }
+        }
+    }
+
+    fn convert_to_yaml(&self, output_path: String) {
+        let mut output = File::create(output_path).expect("Failed to create output file");
+        write!(
+            output,
+            "{}",
+            serde_yaml::to_string(&self.commands).expect("Error when convert to yaml")
+        )
+        .expect("Error when writing to file");
+
+        println!("Converted");
+    }
+
+    fn convert_to_json(&self, output_path: String) {
+        let mut output = File::create(output_path).expect("Failed to create output file");
+        write!(
+            output,
+            "{}",
+            serde_json::to_string(&self.commands).expect("Error when convert to json")
+        )
+        .expect("Error when writing to file");
+
+        println!("Converted");
+    }
+
+    fn convert_to_json5(&self, output_path: String) {
+        let mut output = File::create(output_path).expect("Failed to create output file");
+        write!(
+            output,
+            "{}",
+            json5::to_string(&self.commands).expect("Error when convert to json5")
+        )
+        .expect("Error when writing to file");
+
+        println!("Converted");
+    }
+
+    pub fn run(&mut self) {
         self.scopes.push(Vec::new());
-        for command in arr {
+        let length = self.commands.len();
+        for i in 0..length {
+            let command = &self.commands[i].clone();
             self.eval_node(command);
-            self.pos += 1;
+            self.pos = i;
         }
     }
 
