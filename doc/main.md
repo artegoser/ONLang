@@ -1,3 +1,9 @@
+# Cli
+
+`on file.onla` to run file.onla
+`on file.onla --compress -o compressed.conla` to compress file.onla to messagePack format
+`on file.onla --convert json -o file.json` to compress file.onla to json (supported formats: json, json5, yaml)
+
 # How to
 
 `All posibilities in example.json5`
