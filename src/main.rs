@@ -23,7 +23,7 @@ mod interpreter;
 use interpreter::Interpreter;
 
 fn main() {
-    // #[cfg(not(debug_assertions))]
+    #[cfg(not(debug_assertions))]
     std::panic::set_hook(Box::new(|info| {
         eprint!(
             "{}",

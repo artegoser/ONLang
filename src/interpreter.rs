@@ -14,6 +14,7 @@ pub struct Interpreter {
     pos: usize,
     scope: usize,
     scopes: Vec<Vec<String>>,
+    named_scopes: Vec<String>,
 }
 
 impl Interpreter {
@@ -54,6 +55,7 @@ impl Interpreter {
                     pos: 1,
                     scope: 0,
                     scopes: Vec::new(),
+                    named_scopes: Vec::new(),
                 }
             }
             "conla" => {
@@ -72,6 +74,7 @@ impl Interpreter {
                     pos: 1,
                     scope: 0,
                     scopes: Vec::new(),
+                    named_scopes: Vec::new(),
                 }
             }
             _ => {
@@ -94,6 +97,7 @@ impl Interpreter {
                     pos: 1,
                     scope: 0,
                     scopes: Vec::new(),
+                    named_scopes: Vec::new(),
                 }
             }
         }
@@ -436,13 +440,23 @@ impl Interpreter {
             VarTypes::Function => {
                 let function = function.body.clone();
                 let real_len = args.len();
-                let func_args = function.get("args").unwrap().as_array().unwrap();
+                let func_args = function.get("args").unwrap().as_array().unwrap().clone();
                 if real_len == func_args.len() {
+                    let args: Vec<Value> = args
+                        .into_iter()
+                        .map(|arg| match arg {
+                            Value::Object(_) => self.eval_node(arg),
+                            _ => arg.clone(),
+                        })
+                        .collect();
+
+                    self.enter_the_named_scope(name.clone());
+
                     for i in 0..real_len {
                         let argname = &func_args[i];
                         match argname {
                             Value::String(argname) => {
-                                self.create_var(&format!("{}.{}", name, argname), &args[i], false);
+                                self.create_var(argname, &args[i], true);
                             }
                             _ => self.error("Argument name must be a string"),
                         }
@@ -451,20 +465,23 @@ impl Interpreter {
                     let name = self.run_nodes(function.get("body").unwrap().as_array().unwrap());
                     match name {
                         Value::Object(name) => {
+                            self.exit_from_named_scope();
                             return name.get("return").unwrap().clone();
                         }
-                        _ => return Value::Null,
+                        _ => {
+                            self.exit_from_named_scope();
+                            return Value::Null;
+                        }
                     }
                 } else {
                     self.error(&format!(
-                        "`{}` must have {} arguments, but {} is specified",
-                        name,
+                        "`{name}` must have {} arguments, but {real_len} is specified",
                         func_args.len(),
-                        real_len
                     ));
                 }
             }
         }
+        self.exit_from_named_scope();
         Value::Null
     }
     fn define_fn(&mut self, value: &Map<String, Value>) {
@@ -479,15 +496,19 @@ impl Interpreter {
                         Value::Array(body) => match args {
                             Some(args) => match args {
                                 Value::Array(args) => {
-                                    // let args: Vec<String> = args.iter().map(|val| format!("{}.{}", name, val)).collect();
-                                    self.vars.insert(
-                                        name.clone(),
-                                        Var {
-                                            scope: self.scope,
-                                            body: json!({"args":args, "body":body}),
-                                            var_type: VarTypes::Function,
-                                        },
-                                    );
+                                    let name = self.get_name_scoped_name(name, true);
+                                    if !self.var_exists(&name) {
+                                        self.vars.insert(
+                                            name.clone(),
+                                            Var {
+                                                scope: self.scope,
+                                                body: json!({"name":name,"args":args, "body":body}),
+                                                var_type: VarTypes::Function,
+                                            },
+                                        );
+                                    } else {
+                                        self.error(&format!("The variable `{}` already exist, rename function", name));
+                                    }
                                 }
                                 _ => self.error("Arguments must be an array of strings"),
                             },
@@ -608,6 +629,16 @@ impl Interpreter {
         self.scopes.push(Vec::new());
     }
 
+    fn enter_the_named_scope(&mut self, name: String) {
+        self.enter_the_scope();
+        self.named_scopes.push(name);
+    }
+
+    fn exit_from_named_scope(&mut self) {
+        self.exit_from_scope();
+        self.named_scopes.pop();
+    }
+
     fn exit_from_scope(&mut self) {
         self.delete_last_scope();
         self.scope -= 1;
@@ -626,7 +657,27 @@ impl Interpreter {
             self.create_var(name, value, true);
         }
     }
+
+    fn get_name_scoped_name(&mut self, name: &String, to_create: bool) -> String {
+        let n_len = self.named_scopes.len();
+        if n_len > 0 {
+            let new_name = format!("{}.{name}", self.named_scopes[n_len - 1]);
+            if to_create {
+                new_name
+            } else {
+                if let Some(_) = self.vars.get(&new_name) {
+                    new_name
+                } else {
+                    name.clone()
+                }
+            }
+        } else {
+            name.clone()
+        }
+    }
+
     fn create_var(&mut self, name: &String, value: &Value, panic: bool) {
+        let name = self.get_name_scoped_name(name, true);
         if !self.var_exists(&name) {
             match value {
                 Value::Object(_) => {
@@ -639,7 +690,7 @@ impl Interpreter {
                             var_type: VarTypes::Variable,
                         },
                     );
-                    self.scopes[self.scope].push(name.clone())
+                    self.scopes[self.scope].push(name)
                 }
                 _ => {
                     self.vars.insert(
@@ -657,13 +708,14 @@ impl Interpreter {
             if panic {
                 self.error(&format!("The variable {} already exist, use assign", name));
             } else {
-                self.assign_var(name, value);
+                self.assign_var(&name, value);
             }
         }
     }
     fn delete(&mut self, var_name: &String, panic: bool) {
-        if self.var_exists(var_name) {
-            self.vars.remove(var_name);
+        let var_name = self.get_name_scoped_name(var_name, false);
+        if self.var_exists(&var_name) {
+            self.vars.remove(&var_name);
         } else {
             if panic {
                 self.error(&format!(
@@ -675,7 +727,8 @@ impl Interpreter {
     }
 
     fn get_var(&mut self, var_name: &String) -> &Var {
-        let var = self.vars.get(var_name);
+        let var_name = self.get_name_scoped_name(var_name, false);
+        let var = self.vars.get(&var_name);
         match var {
             Some(var) => return var,
             None => {
@@ -698,11 +751,12 @@ impl Interpreter {
 
     fn assign(&mut self, vars: &Map<String, Value>) {
         for (name, value) in vars {
-            self.assign_var(name, value);
+            self.assign_var(&name, value);
         }
     }
     fn assign_var(&mut self, name: &String, value: &Value) {
-        let scope = self.get_var_scope(name);
+        let name = self.get_name_scoped_name(name, false);
+        let scope = self.get_var_scope(&name);
         match value {
             Value::Object(_) => {
                 let value = self.eval_node(value);
@@ -727,15 +781,17 @@ impl Interpreter {
             }
         }
     }
-    fn var_exists(&self, name: &String) -> bool {
-        match self.vars.get(name) {
+    fn var_exists(&mut self, name: &String) -> bool {
+        let name = self.get_name_scoped_name(name, true);
+        match self.vars.get(&name) {
             Some(_) => true,
             None => false,
         }
     }
 
     fn variable_reference(&mut self, name: &String) -> Value {
-        if self.var_exists(name) {
+        let name = self.get_name_scoped_name(name, false);
+        if self.var_exists(&name) {
             return json!({ "var": name });
         } else {
             self.error(&format!(
