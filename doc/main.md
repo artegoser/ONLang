@@ -8,6 +8,12 @@
 
 `All posibilities in example.json5`
 
+## How to import modules
+
+```json5
+[{ import: { path: "examples/assertions.onla", as: "assertions" } }]
+```
+
 ## How to print
 
 ```json5

@@ -1,0 +1,11 @@
+//artegoser
+//assertions module for onlang
+[
+  {
+    fn: {
+      name: "eq",
+      args: ["a", "b"],
+      body: [{ return: { comp: [{ var: "a" }, "==", { var: "b" }] } }],
+    },
+  },
+]

@@ -1,7 +1,7 @@
 # TODO CONCEPTS
 
 - [x] Functions
-- [ ] imports
+- [x] imports
 - [x] scopes of visibility
 
 - [ ] methods for arrays
@@ -12,7 +12,7 @@
 - [ ] command execution function
 - [ ] function for random
 - [x] delete variable
-- [ ] types conversion
+- [ ] types conversion `in process`
 - [ ] checking variable type
 - [x] checking for the existence of a variable
 - [x] create scopes without if, else, loop
