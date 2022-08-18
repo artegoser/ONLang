@@ -1,0 +1,60 @@
+[
+  {
+    fn: {
+      name: "myCalc",
+      args: ["a", "o", "b"],
+      body: [
+        {
+          fn: {
+            name: "sum",
+            args: ["a", "b"],
+            body: [{ return: { calc: [{ var: "a" }, "+", { var: "b" }] } }],
+          },
+        },
+        {
+          fn: {
+            name: "sub",
+            args: ["a", "b"],
+            body: [{ return: { calc: [{ var: "a" }, "-", { var: "b" }] } }],
+          },
+        },
+        {
+          fn: {
+            name: "mul",
+            args: ["a", "b"],
+            body: [{ return: { calc: [{ var: "a" }, "*", { var: "b" }] } }],
+          },
+        },
+        {
+          if: {
+            condition: { comp: [{ var: "o" }, "==", "*"] },
+            body: [{ return: { mul: [{ var: "a" }, { var: "b" }] } }],
+            else: [
+              {
+                if: {
+                  condition: { comp: [{ var: "o" }, "==", "-"] },
+                  body: [{ return: { sub: [{ var: "a" }, { var: "b" }] } }],
+                  else: [
+                    {
+                      if: {
+                        condition: { comp: [{ var: "o" }, "==", "+"] },
+                        body: [
+                          { return: { sum: [{ var: "a" }, { var: "b" }] } },
+                        ],
+                        else: [{ return: "Wrong operator!" }],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  [{ myCalc: [3, "*", 2] }],
+  [{ myCalc: [3, "/", 2] }],
+  [{ myCalc: [3, "+", 2] }],
+  [{ myCalc: [3, "-", 2] }],
+]
