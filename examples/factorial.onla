@@ -1,28 +1,29 @@
 [
   {
     fn: {
-      name: "fact",
+      name: "fact_loop",
       args: ["n"],
       body: [
-        { let: { result: { var: "fact.n" } } },
+        { let: { result: { var: "n" } } },
         {
           loop: [
-            //using loop because recursion is not supported
+            //using loop because recursion is not supported*
+            //* - already supported
             {
               if: {
-                condition: { comp: [{ var: "fact.n" }, ">", 1] },
+                condition: { comp: [{ var: "n" }, ">", 1] },
                 body: [
                   {
                     assign: {
-                      "fact.n": {
-                        calc: [{ var: "fact.n" }, "-", 1],
+                      n: {
+                        calc: [{ var: "n" }, "-", 1],
                       },
                     },
                   },
                   {
                     assign: {
                       result: {
-                        calc: [{ var: "result" }, "*", { var: "fact.n" }],
+                        calc: [{ var: "result" }, "*", { var: "n" }],
                       },
                     },
                   },
@@ -39,9 +40,35 @@
 
   {
     fn: {
+      name: "fact",
+      args: ["n"],
+      body: [
+        {
+          if: {
+            condition: { comp: [{ var: "n" }, "==", 1] },
+            body: [{ return: 1 }],
+            else: [
+              {
+                return: {
+                  calc: [
+                    { var: "n" },
+                    "*",
+                    { fact: [{ calc: [{ var: "n" }, "-", 1] }] },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  },
+
+  {
+    fn: {
       name: "_eq",
       args: ["a", "b"],
-      body: [{ return: { comp: [{ var: "_eq.a" }, "==", { var: "_eq.b" }] } }],
+      body: [{ return: { comp: [{ var: "a" }, "==", { var: "b" }] } }],
     },
   },
 
@@ -70,6 +97,10 @@
     "20! == 2 432 902 008 176 640 000: ",
     { _eq: [{ fact: [20] }, 2432902008176640000] },
   ],
+  "",
+  ["(loop) 10! == 3 628 800: ", { _eq: [{ fact_loop: [10] }, 3628800] }],
+  ["(loop) 11! == 39 916 800: ", { _eq: [{ fact_loop: [11] }, 39916800] }],
+
   // [
   //   "21! == 51 090 942 171 709 440 000: ",
   //   { _eq: [{ fact: [21] }, 51090942171709440000] },
