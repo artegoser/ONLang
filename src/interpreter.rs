@@ -29,87 +29,13 @@ impl Interpreter {
         self.exit_from_scope();
     }
     pub fn new(file_path: String) -> Self {
-        match Path::new(&file_path)
-            .extension()
-            .and_then(OsStr::to_str)
-            .expect("The file must have the extension (.yaml, .json, .json5, .onla or .conla)")
-        {
-            "yaml" => {
-                let file_input = fs::read_to_string(&file_path).expect("File reading error");
-                let obj: serde_json::Value =
-                    serde_yaml::from_str(&file_input).unwrap_or_else(|x| {
-                        match x.location() {
-                            Some(location) => {
-                                eprintln!(
-                                    "{file_path}:{}:{} --> {x}",
-                                    location.column(),
-                                    location.line()
-                                );
-                            }
-                            None => {
-                                eprintln!("{}", x);
-                            }
-                        }
-
-                        std::process::exit(1);
-                    });
-                let commands = obj.as_array().unwrap_or_else(|| {
-                    obj.get("main")
-                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
-                        .as_array()
-                        .expect("The program must be an array of commands")
-                });
-                Self {
-                    commands: commands.clone(),
-                    vars: HashMap::new(),
-                    pos: 1,
-                    scope: 0,
-                    scopes: Vec::new(),
-                    named_scopes: Vec::new(),
-                }
-            }
-            "conla" => {
-                let file_input = File::open(file_path).expect("File reading error");
-                let obj: serde_json::Value = rmp_serde::from_read(file_input)
-                    .expect(".conla file (MessagePack) is invalid! ");
-                let commands = obj.as_array().unwrap_or_else(|| {
-                    obj.get("main")
-                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
-                        .as_array()
-                        .expect("The program must be an array of commands")
-                });
-                Self {
-                    commands: commands.clone(),
-                    vars: HashMap::new(),
-                    pos: 1,
-                    scope: 0,
-                    scopes: Vec::new(),
-                    named_scopes: Vec::new(),
-                }
-            }
-            _ => {
-                let file_input = fs::read_to_string(&file_path).expect("File reading error");
-                let obj: serde_json::Value =
-                    json5::from_str::<Value>(&file_input).unwrap_or_else(|x| {
-                        eprintln!("{file_path}{x}");
-                        std::process::exit(1);
-                    });
-                let commands = obj.as_array().unwrap_or_else(|| {
-                    obj.get("main")
-                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
-                        .as_array()
-                        .expect("The program must be an array of commands")
-                });
-
-                Self {
-                    commands: commands.clone(),
-                    vars: HashMap::new(),
-                    pos: 1,
-                    scope: 0,
-                    scopes: Vec::new(),
-                    named_scopes: Vec::new(),
-                }
-            }
+        Self {
+            commands: Interpreter::get_commands(file_path),
+            vars: HashMap::new(),
+            pos: 1,
+            scope: 0,
+            scopes: Vec::new(),
+            named_scopes: Vec::new(),
         }
     }
 
@@ -137,6 +63,70 @@ impl Interpreter {
             }
             _ => {
                 self.error("The conversion format is not supported");
+            }
+        }
+    }
+
+    fn get_commands(file_path: String) -> Vec<Value> {
+        match Path::new(&file_path)
+            .extension()
+            .and_then(OsStr::to_str)
+            .expect("The file must have the extension (.yaml, .json, .json5, .onla or .conla)")
+        {
+            "yaml" => {
+                let file_input = fs::read_to_string(&file_path).expect("File reading error");
+                let obj: serde_json::Value =
+                    serde_yaml::from_str(&file_input).unwrap_or_else(|x| {
+                        match x.location() {
+                            Some(location) => {
+                                eprintln!(
+                                    "{file_path}:{}:{} --> {x}",
+                                    location.column(),
+                                    location.line()
+                                );
+                            }
+                            None => {
+                                eprintln!("{}", x);
+                            }
+                        }
+
+                        std::process::exit(1);
+                    });
+                let commands = obj.as_array().unwrap_or_else(|| {
+                obj.get("main")
+                        .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                        .as_array()
+                        .expect("The program must be an array of commands")
+                });
+                commands.clone()
+            }
+            "conla" => {
+                let file_input = File::open(file_path).expect("File reading error");
+                let obj: serde_json::Value = rmp_serde::from_read(file_input)
+                    .expect(".conla file (MessagePack) is invalid! ");
+                let commands = obj.as_array().unwrap_or_else(|| {
+                obj.get("main")
+                    .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                    .as_array()
+                    .expect("The program must be an array of commands")
+            });
+                commands.clone()
+            }
+            _ => {
+                let file_input = fs::read_to_string(&file_path).expect("File reading error");
+                let obj: serde_json::Value =
+                    json5::from_str::<Value>(&file_input).unwrap_or_else(|x| {
+                        eprintln!("{file_path}{x}");
+                        std::process::exit(1);
+                    });
+                let commands = obj.as_array().unwrap_or_else(|| {
+                obj.get("main")
+                    .expect("Each program must contain a `{main: [..commands]}` object or be a command array ([..commands])")
+                    .as_array()
+                    .expect("The program must be an array of commands")
+            });
+
+                commands.clone()
             }
         }
     }
@@ -352,6 +342,14 @@ impl Interpreter {
                         },
 
                         "return" => return json!({ "return": value }),
+                        "import" => match value {
+                            Value::Object(value) => {
+                                self.import(value);
+                            }
+                            _ => {
+                                self.error("Unsupported data type for the `obj` argument, must be an array");
+                            }
+                        },
                         name => match value {
                             Value::Array(value) => {
                                 return self.run_fn(name.to_string(), value);
@@ -388,6 +386,34 @@ impl Interpreter {
             }
         }
         return Value::Null;
+    }
+
+    fn import(&mut self, value: &Map<String, Value>) {
+        let path = value
+            .get("path")
+            .expect("The import must contain the `path` argument");
+        let as_name = value
+            .get("as")
+            .expect("The import must contain the `as` argument");
+
+        if let Value::String(path) = path.clone() {
+            if let Value::String(as_name) = as_name.clone() {
+                let commands = Interpreter::get_commands(path);
+                let length = commands.len();
+
+                self.named_scopes.push(as_name);
+                for i in 0..length {
+                    let command = &commands[i];
+                    self.eval_node(command);
+                    self.pos = i;
+                }
+                self.named_scopes.pop();
+            } else {
+                self.error("`as` argument must be a string");
+            }
+        } else {
+            self.error("`path` argument must be a string");
+        }
     }
 
     fn calc_arr(&mut self, value: &Vec<Value>) -> Value {
