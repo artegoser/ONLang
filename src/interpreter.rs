@@ -132,7 +132,8 @@ impl Interpreter {
         write!(
             output,
             "{}",
-            serde_yaml::to_string(&self.commands).expect("Error when convert to yaml")
+            serde_yaml::to_string(&json! ({"main": self.commands}))
+                .expect("Error when convert to yaml")
         )
         .expect("Error when writing to file");
 
@@ -144,7 +145,7 @@ impl Interpreter {
         write!(
             output,
             "{}",
-            serde_json::to_string(&self.commands).expect("Error when convert to json")
+            serde_json::to_string_pretty(&self.commands).expect("Error when convert to json")
         )
         .expect("Error when writing to file");
 
