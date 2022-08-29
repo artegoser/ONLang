@@ -1,0 +1,28 @@
+[
+  {
+    let: {
+      seconds: { toNumber: { input: "Enter the seconds to count down: " } },
+    },
+  },
+
+  {
+    loop: [
+      {
+        if: {
+          condition: { comp: [{ var: "seconds" }, "<=", 0] },
+          body: ["break"],
+        },
+      },
+      [{ var: "seconds" }, " seconds left"],
+      {
+        assign: {
+          seconds: { calc: [{ var: "seconds" }, "-", 1] },
+        },
+      },
+      { sleep: 1000 },
+      "clear",
+    ],
+  },
+
+  ["Time's up"],
+]
