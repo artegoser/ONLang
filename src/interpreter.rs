@@ -325,13 +325,20 @@ impl Interpreter {
                                 self.error("Unsupported data type for the `arr` argument, must be an array");
                             }
                         },
-                        "toString" => {
-                            return serde_json::Value::String(
-                                serde_json::to_string_pretty(&self.eval_node(value))
-                                    .expect("Some error"),
-                            )
-                        }
-
+                        "toString" => match value {
+                            Value::Object(_) => {
+                                return Value::String(
+                                    serde_json::to_string_pretty(&self.eval_node(value))
+                                        .expect("Some error"),
+                                )
+                            }
+                            _ => {
+                                return serde_json::Value::String(
+                                    serde_json::to_string_pretty(&value).expect("Some error"),
+                                )
+                            }
+                        },
+                        "toNumber" => return self.toNumber(value),
                         "obj" => match value {
                             Value::Object(value) => {
                                 return self.calc_obj(value);
@@ -387,7 +394,25 @@ impl Interpreter {
         }
         return Value::Null;
     }
-
+    fn toNumber(&mut self, value: &Value) -> Value {
+        match value {
+            Value::Object(_) => {
+                let value = &self.eval_node(value);
+                return self.toNumber(value);
+            }
+            Value::String(value) => {
+                return json!(value.parse::<u32>().unwrap_or_else(|_| {
+                    self.error("Cannot be converted to a number");
+                    panic!()
+                },))
+            }
+            Value::Bool(value) => return json!(*value as i32),
+            _ => {
+                self.error("Cannot be converted to a number");
+            }
+        }
+        Value::Null
+    }
     fn import(&mut self, value: &Map<String, Value>) {
         let path = value
             .get("path")
